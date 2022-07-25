@@ -12,8 +12,6 @@ class InertiaMiddleware:
     if not self.is_inertia_request(request):
       return response
 
-    response.headers['inertia-test'] = 'I work great!'
-
     if self.is_non_post_redirect(request, response):
       response.status_code = 303
 
