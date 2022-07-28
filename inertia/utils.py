@@ -15,3 +15,14 @@ class InertiaJsonEncoder(DjangoJSONEncoder):
       return [model_to_dict(model) for model in value]
     
     return super().default(value)
+
+class LazyProp:
+  def __init__(self, prop):
+    self.prop = prop
+
+  def __call__(self):
+    return self.prop() if callable(self.prop) else self.prop
+  
+
+def lazy(prop):
+  return LazyProp(prop)

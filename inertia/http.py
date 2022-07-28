@@ -4,23 +4,47 @@ from .settings import settings
 from json import dumps as json_encode
 from functools import wraps
 import requests
+from .utils import LazyProp
 
 def render(request, component, props={}, view_data={}):
+  def is_a_partial_render():
+    return 'X-Inertia-Partial-Data' in request.headers and request.headers.get('X-Inertia-Partial-Component', '') == component
+
+  def partial_keys():
+    return request.headers.get('X-Inertia-Partial-Data', '').split(',')
+
+  def deep_transform_callables(prop):
+    if not isinstance(prop, dict):
+      return prop() if callable(prop) else prop
+    
+    for key in list(prop.keys()):
+      prop[key] = deep_transform_callables(prop[key])
+
+    return prop
+
   def build_props():
     _props = {
       **(request.inertia.all() if hasattr(request, 'inertia') else {}),
       **props,
     }
 
-    for key, value in _props.items():
-      if callable(value):
-        _props[key] = value()
+    for key in list(_props.keys()):
+      if is_a_partial_render():
+        if key not in partial_keys():
+          del _props[key]
+      else:
+        if isinstance(_props[key], LazyProp):
+          del _props[key]
 
-    return _props
+    return deep_transform_callables(_props)
 
   def render_ssr():
-    response = requests.post(f'{settings.INERTIA_SSR_URL}/render', json=page_data()).json()
-    return base_render(request, 'inertia_ssr.html', response)
+    response = requests.post(f'{settings.INERTIA_SSR_URL}/render', json=page_data())
+    response.raise_for_status()
+    return base_render(request, 'inertia_ssr.html', {
+     'inertia_layout': settings.INERTIA_LAYOUT,
+      **response.json()
+    })
 
   def page_data():
     return {
@@ -41,7 +65,10 @@ def render(request, component, props={}, view_data={}):
     )
 
   if settings.INERTIA_SSR_ENABLED:
-    return render_ssr()
+    try:
+      return render_ssr()
+    except Exception:
+      pass
   
   return base_render(request, 'inertia.html', {
     'inertia_layout': settings.INERTIA_LAYOUT,

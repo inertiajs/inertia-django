@@ -1,0 +1,62 @@
+from django.http.response import HttpResponse
+from django.shortcuts import redirect
+from django.utils.decorators import decorator_from_middleware
+from inertia.http import inertia, render
+from inertia.utils import lazy
+from inertia.share import share
+
+class ShareMiddleware:
+  def __init__(self, get_response):
+    self.get_response = get_response
+
+  def process_request(self, request):
+    share(request, 
+      position=lambda: 'goalie',
+      number=29,
+    )
+
+def test(request):
+  return HttpResponse('Hey good stuff')
+
+@inertia('TestComponent')
+def empty_test(request):
+  return {}
+
+def redirect_test(request):
+  return redirect(empty_test)
+
+@inertia('TestComponent')
+def props_test(request):
+  return {
+    'name': 'Brandon',
+    'sport': 'Hockey',
+  }
+
+def view_data_test(request):
+  return render(request, 'TestComponent', view_data={
+    'name': 'Brian',
+    'sport': 'Basketball',
+  })
+
+@inertia('TestComponent')
+def lazy_test(request):
+  return {
+    'name': 'Brian',
+    'sport': lazy(lambda: 'Basketball'),
+    'grit': lazy(lambda: 'intense'),
+  }
+
+@inertia('TestComponent')
+def complex_props_test(request):
+  return {
+    'person': {
+      'name': lambda: 'Brandon',
+    }
+  }
+
+@decorator_from_middleware(ShareMiddleware)
+@inertia('TestComponent')
+def share_test(request):
+  return {
+    'name': 'Brandon',
+  }

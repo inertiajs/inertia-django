@@ -24,13 +24,13 @@ class InertiaMiddleware:
     return self.is_redirect_request(response) and request.method in ['POST', 'PATCH', 'DELETE']
 
   def is_inertia_request(self, request):
-    return 'HTTP_X_INERTIA' in request.headers
+    return 'X-Inertia' in request.headers
 
   def is_redirect_request(self, response):
     return response.status_code in [301, 302]
 
   def is_stale(self, request):
-    return request['HTTP_X_INERTIA_VERSION'] != settings.INERTIA_VERSION
+    return request.headers.get('X-Inertia-Version', settings.INERTIA_VERSION) != settings.INERTIA_VERSION
 
   def is_stale_inertia_get(self, request):
     return request.method == 'GET' and self.is_stale(request)
