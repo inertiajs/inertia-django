@@ -123,6 +123,42 @@ INERTIA_SSR_URL = 'http://localhost:13714' # defaults to http://localhost:13714
 INERTIA_SSR_ENABLED = False # defaults to False
 ```
 
+## Testing
+
+Inertia Django ships with a custom TestCase to give you some nice helper methods and assertions.
+To use it, just make sure your TestCase inherits from `InertiaTestCase`. `InertiaTestCase` inherits from Django's `django.test.TestCase` so it includes transaction support and a client.
+
+```python
+from inertia.test import InertiaTestCase
+
+class ExampleTestCase(InertiaTestCase):
+  def test_show_assertions(self):
+    self.client.get('/events/')
+
+    # check the component
+    self.assertComponentUsed('Event/Index')
+    
+    # access the component name
+    self.assertEqual(self.component(), 'Event/Index')
+    
+    # props (including shared props)
+    self.assertHasExactProps({name: 'Brandon', sport: 'hockey'})
+    self.assertIncludesProps({sport: 'hockey'})
+    
+    # access props
+    self.assertEquals(self.props()['name'], 'Brandon')
+    
+    # view data
+    self.assertHasExactViewData({name: 'Brian', sport: 'basketball'})
+    self.assertIncludesViewData({sport: 'basketball'})
+    
+    # access view data 
+    self.assertEquals(self.view_data()['name'], 'Brian')
+```
+
+The inertia test helper also includes a special `inertia` client that pre-sets the inertia headers
+for you to simulate an inertia response. You can access and use it just like the normal client with commands like `self.inertia.get('/events/')`. When using the inertia client, inertia custom assertions **are not** enabled though, so only use it if you want to directly assert against the json response.
+
 ## Thank you
 
 A huge thank you to the community members who have worked on InertiaJS for Django before us. Parts of this repo were particularly inspired by [Andres Vargas](https://github.com/zodman) and [Samuel Girardin](https://github.com/girardinsamuel). Additional thanks to Andres for the Pypi project.
