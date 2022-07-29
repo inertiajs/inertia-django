@@ -30,7 +30,7 @@ MIDDLEWARE = [
 ]
 ```
 
-Finally, create a layout which exposes `{% block content %}{% endblock %}` in the body and set the path to this layout as `INERTIA_LAYOUT` in your `settings.py` file.
+Finally, create a layout which exposes `{% block inertia %}{% endblock %}` in the body and set the path to this layout as `INERTIA_LAYOUT` in your `settings.py` file.
 
 Now you're all set!
 
