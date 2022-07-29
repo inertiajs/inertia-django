@@ -1,9 +1,7 @@
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
-from inertia.http import inertia, render
-from inertia.utils import lazy
-from inertia.share import share
+from inertia import inertia, render, lazy, share
 
 class ShareMiddleware:
   def __init__(self, get_response):

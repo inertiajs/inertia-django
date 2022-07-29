@@ -52,7 +52,7 @@ You can also check out the official Inertia docs at https://inertiajs.com/.
 Render Inertia responses is simple, you can either use the provided inertia render function or, for the most common use case, the inertia decorator. The render function accepts four arguments, the first is your request object. The second is the name of the component you want to render from within your pages directory (without extension). The third argument is a dict of `props` that should be provided to your components. The final argument is `view_data`, for any variables you want to provide to your template, but this is much less common.
 
 ```python
-from inertia.http import render
+from inertia import render
 from .models import Event
 
 def index(request):
@@ -64,7 +64,7 @@ def index(request):
 Or use the simpler decorator for the most common use cases
 
 ```python
-from inertia.http import inertia
+from inertia import inertia
 from .models import Event
 
 @inertia('Event/Index')
@@ -79,7 +79,7 @@ def index(request):
 If you have data that you want to be provided as a prop to every component (a common use-case is information about the authenticated user) you can use the `share` method. A common place to put this would be in some custom middleware.
 
 ```python
-from inertia.share import share
+from inertia import share
 from django.conf import settings
 from .models import User
 
@@ -93,6 +93,21 @@ def inertia_share(get_response):
 
     return get_response(request)
   return middleware
+```
+
+### Lazy Props
+On the front end, Inertia supports the concept of "partial reloads" where only the props requested
+are returned by the server. Sometimes, you may want to use this flow to avoid processing a particularly slow prop on the intial load. In this case, you can use `Lazy props`. Lazy props aren't evaluated unless they're specifically requested by name in a partial reload.
+
+```python
+from inertia import lazy, inertia
+
+@inertia('ExampleComponent')
+def example(request):
+  return {
+    'name': lambda: 'Brandon', # this will be rendered on the first load as usual
+    'data': lazy(lambda: some_long_calculation()), # this will only be run when specifically requested by partial props and WILL NOT be included on the initial load
+  }
 ```
 
 ### Json Encoding
