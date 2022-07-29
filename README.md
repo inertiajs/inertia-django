@@ -3,8 +3,6 @@
 
 # Inertia.js Django Adapter
 
-## :warning: Inertia Django is still pre stable release and is not considered production ready like its siblings Inertia Laravel and Inertia Rails. Use at your own risk and please report any issues! :warning:
-
 ## Installation
 
 ### Backend
