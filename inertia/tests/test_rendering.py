@@ -10,10 +10,10 @@ class FirstLoadTestCase(InertiaTestCase):
       })
     )
 
-  def test_with_view_data(self):
+  def test_with_template_data(self):
     self.assertContains(
-      self.client.get('/view_data/'),
-      inertia_div('view_data', view_data={
+      self.client.get('/template_data/'),
+      inertia_div('template_data', template_data={
         'name': 'Brian',
         'sport': 'Basketball',
       })
@@ -45,10 +45,10 @@ class SubsequentLoadTestCase(InertiaTestCase):
       })
     )
 
-  def test_with_view_data(self):
+  def test_with_template_data(self):
     self.assertJSONResponse(
-      self.inertia.get('/view_data/'),
-      inertia_page('view_data', view_data={
+      self.inertia.get('/template_data/'),
+      inertia_page('template_data', template_data={
         'name': 'Brian',
         'sport': 'Basketball',
       })

@@ -6,7 +6,7 @@ urlpatterns = [
   path('empty/', views.empty_test),
   path('redirect/', views.redirect_test),
   path('props/', views.props_test),
-  path('view_data/', views.view_data_test),
+  path('template_data/', views.template_data_test),
   path('lazy/', views.lazy_test),
   path('complex-props/', views.complex_props_test),
   path('share/', views.share_test),

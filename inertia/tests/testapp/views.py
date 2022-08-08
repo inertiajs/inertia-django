@@ -30,8 +30,8 @@ def props_test(request):
     'sport': 'Hockey',
   }
 
-def view_data_test(request):
-  return render(request, 'TestComponent', view_data={
+def template_data_test(request):
+  return render(request, 'TestComponent', template_data={
     'name': 'Brian',
     'sport': 'Basketball',
   })

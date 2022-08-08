@@ -30,7 +30,7 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
   def props(self):
     return self.page()['props']
 
-  def view_data(self):
+  def template_data(self):
     context = self.mock_render.call_args.args[2]
 
     return {key: context[key] for key in context if key not in ['page', 'inertia_layout']}
@@ -44,16 +44,16 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
   def assertHasExactProps(self, props):
     self.assertDictEqual(self.props(), props)
 
-  def assertIncludesViewData(self, view_data):
-    self.assertDictEqual(self.view_data(), {**self.view_data(), **view_data})
+  def assertIncludesTemplateData(self, template_data):
+    self.assertDictEqual(self.template_data(), {**self.template_data(), **template_data})
 
-  def assertHasExactViewData(self, view_data):
-    self.assertDictEqual(self.view_data(), view_data)
+  def assertHasExactTemplateData(self, template_data):
+    self.assertDictEqual(self.template_data(), template_data)
 
   def assertComponentUsed(self, component_name):
     self.assertEqual(component_name, self.component())
 
-def inertia_page(url, component='TestComponent', props={}, view_data={}):
+def inertia_page(url, component='TestComponent', props={}, template_data={}):
   return {
     'component': 'TestComponent',
     'props': props,

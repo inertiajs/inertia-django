@@ -6,7 +6,7 @@ from functools import wraps
 import requests
 from .utils import LazyProp
 
-def render(request, component, props={}, view_data={}):
+def render(request, component, props={}, template_data={}):
   def is_a_partial_render():
     return 'X-Inertia-Partial-Data' in request.headers and request.headers.get('X-Inertia-Partial-Component', '') == component
 
@@ -73,7 +73,7 @@ def render(request, component, props={}, view_data={}):
   return base_render(request, 'inertia.html', {
     'inertia_layout': settings.INERTIA_LAYOUT,
     'page': json_encode(page_data(), cls=settings.INERTIA_JSON_ENCODER),
-    **view_data,
+    **template_data,
   })
 
 def inertia(component):

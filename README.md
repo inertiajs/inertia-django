@@ -47,7 +47,7 @@ You can also check out the official Inertia docs at https://inertiajs.com/.
 
 ### Responses
 
-Render Inertia responses is simple, you can either use the provided inertia render function or, for the most common use case, the inertia decorator. The render function accepts four arguments, the first is your request object. The second is the name of the component you want to render from within your pages directory (without extension). The third argument is a dict of `props` that should be provided to your components. The final argument is `view_data`, for any variables you want to provide to your template, but this is much less common.
+Render Inertia responses is simple, you can either use the provided inertia render function or, for the most common use case, the inertia decorator. The render function accepts four arguments, the first is your request object. The second is the name of the component you want to render from within your pages directory (without extension). The third argument is a dict of `props` that should be provided to your components. The final argument is `template_data`, for any variables you want to provide to your template, but this is much less common.
 
 ```python
 from inertia import render
@@ -161,12 +161,12 @@ class ExampleTestCase(InertiaTestCase):
     # access props
     self.assertEquals(self.props()['name'], 'Brandon')
     
-    # view data
-    self.assertHasExactViewData({name: 'Brian', sport: 'basketball'})
-    self.assertIncludesViewData({sport: 'basketball'})
+    # template data
+    self.assertHasExactTemplateData({name: 'Brian', sport: 'basketball'})
+    self.assertIncludesTemplateData({sport: 'basketball'})
     
-    # access view data 
-    self.assertEquals(self.view_data()['name'], 'Brian')
+    # access template data 
+    self.assertEquals(self.template_data()['name'], 'Brian')
 ```
 
 The inertia test helper also includes a special `inertia` client that pre-sets the inertia headers

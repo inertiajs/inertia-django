@@ -12,15 +12,15 @@ class TestTestCase(InertiaTestCase):
 
     self.assertHasExactProps({'name': 'Brandon', 'sport': 'Hockey'})
 
-  def test_has_view_data(self):
-    response = self.client.get('/view_data/')
+  def test_has_template_data(self):
+    response = self.client.get('/template_data/')
 
-    self.assertIncludesViewData({'name': 'Brian'})
+    self.assertIncludesTemplateData({'name': 'Brian'})
 
-  def test_has_exact_view_data(self):
-    response = self.client.get('/view_data/')
+  def test_has_exact_template_data(self):
+    response = self.client.get('/template_data/')
 
-    self.assertHasExactViewData({'name': 'Brian', 'sport': 'Basketball'})
+    self.assertHasExactTemplateData({'name': 'Brian', 'sport': 'Basketball'})
 
   def test_component_name(self):
     response = self.client.get('/props/')
