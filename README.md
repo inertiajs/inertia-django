@@ -124,7 +124,7 @@ Coming Soon!
 
 ## Settings
 
-Inertia Rails has a few different settings options that can be set from within your project's `settings.py` file. Some of them have defaults.
+Inertia Django has a few different settings options that can be set from within your project's `settings.py` file. Some of them have defaults.
 
 The default config is shown below
 
