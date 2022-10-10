@@ -66,6 +66,12 @@ class SubsequentLoadTestCase(InertiaTestCase):
       200
     )
 
+  def test_redirects_from_inertia_views(self):
+    self.assertEqual(
+      self.inertia.get('/inertia-redirect/').status_code,
+      302
+    )
+
 class LazyPropsTestCase(InertiaTestCase):
   def test_lazy_props_are_not_included(self):
     self.assertJSONResponse(
