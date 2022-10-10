@@ -10,4 +10,5 @@ urlpatterns = [
   path('lazy/', views.lazy_test),
   path('complex-props/', views.complex_props_test),
   path('share/', views.share_test),
+  path('inertia-redirect/', views.inertia_redirect_test),
 ]

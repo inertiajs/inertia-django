@@ -81,6 +81,11 @@ def inertia(component):
     @wraps(func)
     def inner(request, *args, **kwargs):
       props = func(request, *args, **kwargs)
+
+      # if something other than a dict is returned, the user probably wants to return a specific response
+      if not isinstance(props, dict):
+        return props
+
       return render(request, component, props)
     
     return inner

@@ -24,6 +24,10 @@ def redirect_test(request):
   return redirect(empty_test)
 
 @inertia('TestComponent')
+def inertia_redirect_test(request):
+  return redirect(empty_test)
+
+@inertia('TestComponent')
 def props_test(request):
   return {
     'name': 'Brandon',
