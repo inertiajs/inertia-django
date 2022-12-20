@@ -43,6 +43,25 @@ your frontend of choice, just replace the contents of `entry.js` with [this file
 
 You can also check out the official Inertia docs at https://inertiajs.com/. 
 
+### CSRF
+
+Django's CSRF tokens are tightly coupled with rendering templates so Inertia Django automatically handles adding the CSRF cookie for you to each Inertia response. Because the default names Django users for the CSRF headers don't match Axios (the Javascript request library Inertia uses), we'll need to either modify Axios's defaults OR Django's settings. 
+
+**You only need to choose one of the following options, just pick whichever makes the most sense to you!**
+
+In your `entry.js` file
+```javascript
+axios.defaults.xsrfHeaderName = "X-CSRFToken"
+axios.defaults.xsrfCookieName = "csrftoken"
+```
+OR
+
+In your Django `settings.py` file
+```python
+CSRF_HEADER_NAME = 'HTTP_X_XSRF_TOKEN'
+CSRF_COOKIE_NAME = 'XSRF-TOKEN'
+```
+
 ## Usage
 
 ### Responses

@@ -98,3 +98,9 @@ class ShareTestCase(InertiaTestCase):
       self.inertia.get('/share/'),
       inertia_page('share', props={'name': 'Brandon', 'position': 'goalie', 'number': 29})
     )
+
+class CSRFTestCase(InertiaTestCase):
+  def test_that_csrf_inclusion_is_automatic(self):
+    response = self.inertia.get('/props/')
+
+    self.assertIsNotNone(response.cookies.get('csrftoken'))
