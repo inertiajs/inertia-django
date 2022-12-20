@@ -1,6 +1,7 @@
 from .settings import settings
 from django.contrib import messages
 from django.http import HttpResponse
+from django.middleware.csrf import get_token
 
 class InertiaMiddleware:
   def __init__(self, get_response):
@@ -11,6 +12,10 @@ class InertiaMiddleware:
 
     if not self.is_inertia_request(request):
       return response
+
+    # Inertia requests don't ever render templates, so they skip the typical Django
+    # CSRF path. We'll manually add a CSRF token for every request here.
+    get_token(request)
 
     if self.is_non_post_redirect(request, response):
       response.status_code = 303
