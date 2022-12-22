@@ -104,3 +104,8 @@ class CSRFTestCase(InertiaTestCase):
     response = self.inertia.get('/props/')
 
     self.assertIsNotNone(response.cookies.get('csrftoken'))
+
+  def test_that_csrf_is_included_even_on_initial_page_load(self):
+    response = self.client.get('/props/')
+
+    self.assertIsNotNone(response.cookies.get('csrftoken'))
