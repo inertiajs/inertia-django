@@ -39,7 +39,12 @@ def render(request, component, props={}, template_data={}):
     return deep_transform_callables(_props)
 
   def render_ssr():
-    response = requests.post(f'{settings.INERTIA_SSR_URL}/render', json=page_data())
+    data = json_encode(page_data(), cls=settings.INERTIA_JSON_ENCODER)
+    response = requests.post(
+      f"{settings.INERTIA_SSR_URL}/render",
+      data=data,
+      headers={"Content-Type": "application/json"},
+    )
     response.raise_for_status()
     return base_render(request, 'inertia_ssr.html', {
      'inertia_layout': settings.INERTIA_LAYOUT,
