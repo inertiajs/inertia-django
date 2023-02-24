@@ -55,7 +55,7 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
 
 def inertia_page(url, component='TestComponent', props={}, template_data={}):
   return {
-    'component': 'TestComponent',
+    'component': component,
     'props': props,
     'url': f'http://testserver/{url}/',
     'version': settings.INERTIA_VERSION,
