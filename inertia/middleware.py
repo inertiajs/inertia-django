@@ -26,7 +26,7 @@ class InertiaMiddleware:
     return response
 
   def is_non_post_redirect(self, request, response):
-    return self.is_redirect_request(response) and request.method in ['POST', 'PATCH', 'DELETE']
+    return self.is_redirect_request(response) and request.method in ['PUT', 'PATCH', 'DELETE']
 
   def is_inertia_request(self, request):
     return 'X-Inertia' in request.headers

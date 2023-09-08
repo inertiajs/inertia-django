@@ -16,11 +16,13 @@ class MiddlewareTestCase(InertiaTestCase):
     self.assertEqual(response.headers['X-Inertia-Location'], 'http://testserver/empty/')
 
   def test_redirect_status(self):
-    for http_method in ['post', 'patch', 'delete']:
+    response = self.inertia.post('/redirect/')
+    self.assertEqual(response.status_code, 302)
+
+    for http_method in ['put', 'patch', 'delete']:
       response = getattr(self.inertia, http_method)('/redirect/')
 
       self.assertEqual(response.status_code, 303)
-
 
   def test_a_request_not_from_inertia_is_ignored(self):
     response = self.client.get('/empty/',
