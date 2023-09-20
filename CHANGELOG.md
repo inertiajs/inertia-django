@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] - 2023-09-20
+
+* Encode SSR page data via the included InertiaJsonEncoder. Thanks @svengt!
+* Bugfix for Inertia test helpers. Thanks @nootr!
+* Bugfix for 303 redirect HTTP verbs. Thanks @Xzya! 
+
 ## [0.5.2] - 2022-12-22
 
 * Make sure CSRF cookies are also set on initial load, not just inertia responses. Thanks @pauldiepold!
