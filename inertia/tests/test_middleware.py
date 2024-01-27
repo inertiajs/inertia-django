@@ -1,5 +1,7 @@
 from django.test import TestCase, Client, override_settings
 from inertia.test import InertiaTestCase
+from inertia.validation import VALIDATION_ERRORS_SESSION_KEY
+from django.conf import settings
 
 class MiddlewareTestCase(InertiaTestCase):
   def test_anything(self):
@@ -30,3 +32,23 @@ class MiddlewareTestCase(InertiaTestCase):
     )
 
     self.assertEqual(response.status_code, 200)
+
+  def test_stores_validation_errors_in_session(self):
+    self.inertia.post('/form/', data={'invalid': 'data'})
+    self.assertDictEqual(self.inertia.session[VALIDATION_ERRORS_SESSION_KEY], {
+      'str_field': 'This field is required.',
+      'num_field': 'This field is required.'
+    })
+
+  def test_pops_validation_errors_from_session(self):
+    self.inertia.post('/form/', data={'invalid': 'data'})
+    self.inertia.get('/form/')
+    self.assertFalse(self.inertia.session.has_key(VALIDATION_ERRORS_SESSION_KEY))
+
+  def test_maintains_validation_errors_in_session_until_necessary(self):
+    self.inertia.post('/form/', data={'invalid': 'data'})
+    # Some other non-inertia request before Inertia actually redirects
+    self.client.cookies[settings.SESSION_COOKIE_NAME] = self.inertia.session.session_key
+    self.client.get('/empty/')
+
+    self.assertTrue(self.inertia.session.has_key(VALIDATION_ERRORS_SESSION_KEY))
