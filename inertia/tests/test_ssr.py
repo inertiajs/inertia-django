@@ -1,3 +1,4 @@
+from json import dumps
 from inertia.test import InertiaTestCase, inertia_page, inertia_div
 from django.test import override_settings
 from unittest.mock import patch, Mock
@@ -24,7 +25,8 @@ class SSRTestCase(InertiaTestCase):
     
     mock_request.post.assert_called_once_with(
       'ssr-url/render',
-      json=inertia_page('props', props={'name': 'Brandon', 'sport': 'Hockey'}),
+      data=dumps(inertia_page('props', props={'name': 'Brandon', 'sport': 'Hockey'})),
+      headers={'Content-Type': 'application/json'}
     )
     self.assertTemplateUsed('inertia_ssr.html')
     print(response.content)
