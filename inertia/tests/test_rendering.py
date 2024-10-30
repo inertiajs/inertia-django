@@ -109,3 +109,22 @@ class CSRFTestCase(InertiaTestCase):
     response = self.client.get('/props/')
 
     self.assertIsNotNone(response.cookies.get('csrftoken'))
+
+class FormValidationTestCase(InertiaTestCase):
+  def test_inertia_receives_errors_prop(self):
+    submit_invalid_form_response = self.inertia.post(
+      path='/form/',
+      data={'invalid': 'data'},
+      follow=True,
+    )
+
+    self.assertJSONResponse(
+      submit_invalid_form_response,
+      inertia_page('form', props={
+        'test': 'props',
+        'errors': {
+          'str_field': 'This field is required.',
+          'num_field': 'This field is required.',
+        }
+      })
+    )
