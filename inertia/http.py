@@ -63,7 +63,7 @@ def render(request, component, props={}, template_data={}):
     return JsonResponse(
       data=page_data(),
       headers={
-        'Vary': 'Accept',
+        'Vary': 'X-Inertia',
         'X-Inertia': 'true',
       },
       encoder=settings.INERTIA_JSON_ENCODER,
