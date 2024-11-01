@@ -55,7 +55,7 @@ def render(request, component, props={}, template_data={}):
     return {
       'component': component,
       'props': build_props(),
-      'url': request.build_absolute_uri(),
+      'url': request.get_full_path(),
       'version': settings.INERTIA_VERSION,
     }
 
