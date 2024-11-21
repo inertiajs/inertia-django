@@ -1,4 +1,5 @@
-from django.http import JsonResponse
+from http import HTTPStatus
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render as base_render
 from .settings import settings
 from json import dumps as json_encode
@@ -80,6 +81,11 @@ def render(request, component, props={}, template_data={}):
     'page': json_encode(page_data(), cls=settings.INERTIA_JSON_ENCODER),
     **template_data,
   })
+
+def location(location):
+    return HttpResponse('', status=HTTPStatus.CONFLICT, headers={
+      'X-Inertia-Location': location,
+    })
 
 def inertia(component):
   def decorator(func):

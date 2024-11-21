@@ -1,7 +1,7 @@
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
-from inertia import inertia, render, lazy, share
+from inertia import inertia, render, lazy, share, location
 
 class ShareMiddleware:
   def __init__(self, get_response):
@@ -26,6 +26,9 @@ def redirect_test(request):
 @inertia('TestComponent')
 def inertia_redirect_test(request):
   return redirect(empty_test)
+
+def external_redirect_test(request):
+  return location("http://foobar.com/")
 
 @inertia('TestComponent')
 def props_test(request):

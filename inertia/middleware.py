@@ -2,6 +2,7 @@ from .settings import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
+from .http import location
 
 class InertiaMiddleware:
   def __init__(self, get_response):
@@ -42,6 +43,4 @@ class InertiaMiddleware:
 
   def force_refresh(self, request):
     messages.get_messages(request).used = False
-    return HttpResponse('', status=409, headers={
-      'X-Inertia-Location': request.build_absolute_uri(),
-    })
+    return location(request.build_absolute_uri())
