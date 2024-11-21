@@ -112,6 +112,21 @@ def inertia_share(get_response):
   return middleware
 ```
 
+### External Redirects
+
+It is possible to redirect to an external website, or even another non-Inertia endpoint in your app while handling an Inertia request. 
+This can be accomplished using a server-side initiated `window.location` visit via the `location` method:
+
+```python
+from inertia import location
+
+def external():
+    return location("http://foobar.com/")
+```
+
+It will generate a `409 Conflict` response and include the destination URL in the `X-Inertia-Location` header. 
+When this response is received client-side, Inertia will automatically perform a `window.location = url` visit.
+
 ### Lazy Props
 On the front end, Inertia supports the concept of "partial reloads" where only the props requested
 are returned by the server. Sometimes, you may want to use this flow to avoid processing a particularly slow prop on the intial load. In this case, you can use `Lazy props`. Lazy props aren't evaluated unless they're specifically requested by name in a partial reload.
