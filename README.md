@@ -30,16 +30,147 @@ MIDDLEWARE = [
 ]
 ```
 
-Finally, create a layout which exposes `{% block inertia %}{% endblock %}` in the body and set the path to this layout as `INERTIA_LAYOUT` in your `settings.py` file.
+#### Vite Installation
 
-Now you're all set!
+Before you start it's recommended to start a new app. For this example we created a app called `core`.
+
+Install the following python packages via pip
+```bash
+pip install django-vite whitenoise
+```
+
+Create a layout template file
+```html
+{% load django_vite %}
+<!DOCTYPE  html>
+<html  lang="en">
+<head>
+	<meta  charset="UTF-8"  />
+	<meta  http-equiv="X-UA-Compatible"  content="IE=edge"  />
+	<meta  name="viewport"  content="width=device-width, initial-scale=1.0"  />
+	{% vite_hmr_client %}
+	{% vite_asset 'main.ts' %}
+	
+	<title>Inertia Layout</title>
+</head>
+
+<body>
+	{% block inertia %}{% endblock %}
+</body>
+</html>
+```
+
+Add the Inertia app to your `INSTALLED_APPS` in `settings.py`
+```
+INSTALLED_APPS = [
+  # django apps,
+  'inertia',
+  'django_vite',
+  # your project's apps,
+]
+```
+
+Add whitenoise middleware in `settings.py`
+```python
+MIDDLEWARE = [
+    # ...
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    # ...
+]
+```
+
+Add the following in `settings.py`
+```python
+import re
+
+# django-vite settings
+
+# https://github.com/MrBin99/django-vite
+DJANGO_VITE_DEV_MODE = DEBUG  # follow Django's dev mode
+
+# Where ViteJS assets are built.
+DJANGO_VITE_ASSETS_PATH = BASE_DIR / "core" / "static" / "dist"
+
+# If use HMR or not. We follow Django's DEBUG mode
+DJANGO_VITE_DEV_MODE = DEBUG
+
+# Vite 3 defaults to 5173. Default for django-vite is 3000, which is the default for Vite 2.
+DJANGO_VITE_DEV_SERVER_PORT = 5173
+
+STATICFILES_DIRS = [DJANGO_VITE_ASSETS_PATH]
+
+# Inertia settings
+INERTIA_LAYOUT = BASE_DIR / "core" / "templates/index.html"
+
+# Vite generates files with 8 hash digits
+# http://whitenoise.evans.io/en/stable/django.html#WHITENOISE_IMMUTABLE_FILE_TEST
+def  immutable_file_test(path, url):
+	# Match filename with 12 hex digits before the extension
+	# e.g. app.db8f2edc0c8a.js
+	return  re.match(r"^.+\.[0-9a-f]{8,12}\..+$", url)
+
+WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
+```
+
+This will be all for the frontend side.
 
 ### Frontend
 
-Django specific frontend docs coming soon. For now, we recommend installing [django_vite](https://github.com/MrBin99/django-vite) 
-and following the commits on the Django Vite [example repo](https://github.com/MrBin99/django-vite-example). Once Vite is setup with
-your frontend of choice, just replace the contents of `entry.js` with [this file (example in react)](https://github.com/BrandonShar/inertia-rails-template/blob/main/app/frontend/entrypoints/application.jsx)
+Easiest way to start is by creating a new vite app. In this example we create a svelte-ts vite project outside the django directory.
 
+```bash
+# npm 6.x  npm create vite@latest my-vue-app --template vue  # npm 7+, extra double-dash is needed:  npm create vite@latest my-vue-app -- --template vue  # yarn  yarn create vite my-vue-app --template vue  # pnpm  pnpm create vite my-vue-app --template svelte-ts
+```
+
+Then copy `vite.config.js` `package.json` to the root folder of your django app.
+
+Modify `vite.config.js`
+```javascript
+import { defineConfig } from  'vite'
+import { resolve } from  "path"
+import { svelte } from  '@sveltejs/vite-plugin-svelte'
+// https://vitejs.dev/config/
+
+export  default  defineConfig({
+	plugins: [svelte({ prebundleSvelteLibraries:  true })],
+	root:  resolve("./core/static/src"),
+	base:  "/static/",
+	build: {
+		outDir:  resolve("./core/static/dist"),
+		assetsDir:  "",
+		manifest:  true,
+		emptyOutDir:  true,
+		rollupOptions: {
+			// Overwrite default .html entry to main.ts in the static directory
+			input:  resolve("./core/static/src/main.ts"),
+		},
+	},
+})
+```
+
+In `core/static/` we create a `dist` and `src` folder
+And in `core/static/src/main.ts` we setup inertia.
+
+```typescript
+import  'vite/modulepreload-polyfill'
+import { createInertiaApp } from  '@inertiajs/inertia-svelte'
+import { InertiaProgress } from  '@inertiajs/progress'
+
+const  pages = import.meta.glob('./**/*.svelte')
+
+InertiaProgress.init()
+
+createInertiaApp({
+  resolve:  name  =>  pages[`./pages/${name}.svelte`](),
+  setup({ el, App, props }) {
+	  new  App({ target:  el, props })
+  },
+})
+```
+
+The frontend part works the same for most frameworks. So it's easy to modify.
+For the vitejs svelte plugin `prebundleSvelteLibraries:  true` must be set for it to work.
 
 You can also check out the official Inertia docs at https://inertiajs.com/. 
 
