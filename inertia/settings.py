@@ -8,6 +8,7 @@ class InertiaSettings:
   INERTIA_JSON_ENCODER = InertiaJsonEncoder
   INERTIA_SSR_URL = 'http://localhost:13714'
   INERTIA_SSR_ENABLED = False
+  INERTIA_ENCRYPT_HISTORY = False
   
   def __getattribute__(self, name):
     try:
