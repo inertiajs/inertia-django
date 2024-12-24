@@ -2,6 +2,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
 from inertia import inertia, render, lazy, share, location
+from inertia.http import clear_history, encrypt_history
 
 class ShareMiddleware:
   def __init__(self, get_response):
@@ -65,3 +66,24 @@ def share_test(request):
   return {
     'name': 'Brandon',
   }
+
+@inertia('TestComponent')
+def encrypt_history_test(request):
+  encrypt_history(request)
+  return {}
+
+@inertia('TestComponent')
+def encrypt_history_false_test(request):
+  encrypt_history(request, False)
+  return {}
+
+@inertia('TestComponent')
+def clear_history_test(request):
+  clear_history(request)
+  return {}
+
+@inertia('TestComponent')
+def clear_history_redirect_test(request):
+  clear_history(request)
+  return redirect(empty_test)
+

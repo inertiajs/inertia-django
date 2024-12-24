@@ -59,6 +59,8 @@ def inertia_page(url, component='TestComponent', props={}, template_data={}):
     'props': props,
     'url': f'http://testserver/{url}/',
     'version': settings.INERTIA_VERSION,
+    'encryptHistory': False,
+    'clearHistory': False,
   }
 
 def inertia_div(*args, **kwargs):
