@@ -143,7 +143,7 @@ def example(request):
 ```
 
 ### Deferred Props
-As of version 2.0, Inertia supports the ability to defer the fetching of props until after the page has been initially rendered. Essentially this is similar to the concept of `Lazy props` however Inertia provides convenient frontend components to automatically fetch the deferred props after the page has initially loaded, instead of requiring the user to intiate a reload. For more info, see (Deferred props)[https://inertiajs.com/deferred-props] in the Inertia documentation.
+As of version 2.0, Inertia supports the ability to defer the fetching of props until after the page has been initially rendered. Essentially this is similar to the concept of `Lazy props` however Inertia provides convenient frontend components to automatically fetch the deferred props after the page has initially loaded, instead of requiring the user to initiate a reload. For more info, see [Deferred props](https://inertiajs.com/deferred-props) in the Inertia documentation.
 
 To mark props as deferred on the server side use the `defer` function.
 
