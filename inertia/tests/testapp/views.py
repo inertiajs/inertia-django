@@ -1,7 +1,7 @@
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
-from inertia import inertia, render, lazy, share, location
+from inertia import inertia, render, lazy, defer, share, location
 
 class ShareMiddleware:
   def __init__(self, get_response):
@@ -49,6 +49,23 @@ def lazy_test(request):
     'name': 'Brian',
     'sport': lazy(lambda: 'Basketball'),
     'grit': lazy(lambda: 'intense'),
+  }
+
+@inertia('TestComponent')
+def defer_test(request):
+  return {
+    'name': 'Brian',
+    'sport': defer(lambda: 'Basketball')
+  }
+
+
+@inertia('TestComponent')
+def defer_group_test(request):
+  return {
+    'name': 'Brian',
+    'sport': defer(lambda: 'Basketball', 'group'),
+    'team': defer(lambda: 'Bulls', 'group'),
+    'grit': defer(lambda: 'intense')
   }
 
 @inertia('TestComponent')

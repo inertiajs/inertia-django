@@ -142,6 +142,39 @@ def example(request):
   }
 ```
 
+### Deferred Props
+As of version 2.0, Inertia supports the ability to defer the fetching of props until after the page has been initially rendered. Essentially this is similar to the concept of `Lazy props` however Inertia provides convenient frontend components to automatically fetch the deferred props after the page has initially loaded, instead of requiring the user to intiate a reload. For more info, see (Deferred props)[https://inertiajs.com/deferred-props] in the Inertia documentation.
+
+To mark props as deferred on the server side use the `defer` function.
+
+```python
+from inertia import defer, inertia
+
+@inertia('ExampleComponent')
+def example(request):
+  return {
+    'name': lambda: 'Brandon', # this will be rendered on the first load as usual
+    'data': defer(lambda: some_long_calculation()), # this will only be run after the frontend has initially loaded and inertia requests this prop
+  }
+```
+#### Grouping requests
+By default, all deferred props get fetched in one request after the initial page is rendered, but you can choose to fetch data in parallel by grouping props together.
+
+```python
+from inertia import defer, inertia
+
+@inertia('ExampleComponent')
+def example(request):
+  return {
+    'name': lambda: 'Brandon', # this will be rendered on the first load as usual
+    'data': defer(lambda: some_long_calculation()),
+    'data1': defer(lambda: some_long_calculation1(), 'group'), 
+    'data2': defer(lambda: some_long_calculation1(), 'group'),
+  }
+```
+
+In the example above, the `data1`, and `data2` props will be fetched in one request, while the `data` prop will be fetched in a separate request in parallel. Group names are arbitrary strings and can be anything you choose.
+
 ### Json Encoding
 
 Inertia Django ships with a custom JsonEncoder at `inertia.utils.InertiaJsonEncoder` that extends Django's 

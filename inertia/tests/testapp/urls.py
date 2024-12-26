@@ -8,6 +8,8 @@ urlpatterns = [
   path('props/', views.props_test),
   path('template_data/', views.template_data_test),
   path('lazy/', views.lazy_test),
+  path('defer/', views.defer_test),
+  path('defer-group/', views.defer_group_test), 
   path('complex-props/', views.complex_props_test),
   path('share/', views.share_test),
   path('inertia-redirect/', views.inertia_redirect_test),

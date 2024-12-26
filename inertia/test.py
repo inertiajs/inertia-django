@@ -53,13 +53,18 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
   def assertComponentUsed(self, component_name):
     self.assertEqual(component_name, self.component())
 
-def inertia_page(url, component='TestComponent', props={}, template_data={}):
-  return {
+def inertia_page(url, component='TestComponent', props={}, template_data={}, deferred_props=None):
+  _page = {
     'component': component,
     'props': props,
     'url': f'http://testserver/{url}/',
     'version': settings.INERTIA_VERSION,
   }
+
+  if deferred_props:
+    _page['deferredProps'] = deferred_props
+    
+  return _page
 
 def inertia_div(*args, **kwargs):
   page = inertia_page(*args, **kwargs)

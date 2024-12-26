@@ -109,3 +109,22 @@ class CSRFTestCase(InertiaTestCase):
     response = self.client.get('/props/')
 
     self.assertIsNotNone(response.cookies.get('csrftoken'))
+
+class DeferredPropsTestCase(InertiaTestCase):
+  def test_deferred_props_are_set(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer/'),
+      inertia_page(
+        'defer', 
+        props={'name': 'Brian'}, 
+        deferred_props={'': ['sport']})
+    )
+
+  def test_deferred_props_are_grouped(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer-group/'),
+      inertia_page(
+        'defer-group', 
+        props={'name': 'Brian'}, 
+        deferred_props={'group': ['sport', 'team'], '': ['grit']}) 
+    )
