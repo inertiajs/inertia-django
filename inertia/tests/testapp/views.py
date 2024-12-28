@@ -2,7 +2,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
 from inertia import inertia, render, lazy, share, location
-from inertia.http import clear_history, encrypt_history
+from inertia.http import INERTIA_SESSION_CLEAR_HISTORY, clear_history, encrypt_history
 
 class ShareMiddleware:
   def __init__(self, get_response):
@@ -78,6 +78,11 @@ def encrypt_history_false_test(request):
   return {}
 
 @inertia('TestComponent')
+def encrypt_history_type_error_test(request):
+  encrypt_history(request, "foo")
+  return {}
+
+@inertia('TestComponent')
 def clear_history_test(request):
   clear_history(request)
   return {}
@@ -87,3 +92,7 @@ def clear_history_redirect_test(request):
   clear_history(request)
   return redirect(empty_test)
 
+@inertia('TestComponent')
+def clear_history_type_error_test(request):
+  request.session[INERTIA_SESSION_CLEAR_HISTORY] = "foo"
+  return {}

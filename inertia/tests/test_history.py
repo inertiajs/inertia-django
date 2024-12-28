@@ -30,3 +30,10 @@ class MiddlewareTestCase(InertiaTestCase):
     response = self.client.get('/clear-history-redirect/', follow=True)
     self.assertRedirects(response, '/empty/')
     assert self.page()['clearHistory'] is True
+
+  def test_raises_type_error(self):
+    with self.assertRaisesMessage(TypeError, 'Expected boolean for encrypt_history, got str'):
+      self.client.get('/encrypt-history-type-error/')
+
+    with self.assertRaisesMessage(TypeError, 'Expected boolean for clear_history, got str'):
+      self.client.get('/clear-history-type-error/')

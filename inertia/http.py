@@ -57,15 +57,20 @@ def render(request, component, props={}, template_data={}):
 
   def page_data():
     encrypt_history = getattr(request, INERTIA_REQUEST_ENCRYPT_HISTORY, settings.INERTIA_ENCRYPT_HISTORY)
+    if not isinstance(encrypt_history, bool):
+      raise TypeError(f"Expected boolean for encrypt_history, got {type(encrypt_history).__name__}")
+
     clear_history = request.session.pop(INERTIA_SESSION_CLEAR_HISTORY, False)
+    if not isinstance(clear_history, bool):
+      raise TypeError(f"Expected boolean for clear_history, got {type(clear_history).__name__}")
 
     return {
       'component': component,
       'props': build_props(),
       'url': request.build_absolute_uri(),
       'version': settings.INERTIA_VERSION,
-      'encryptHistory': bool(encrypt_history),
-      'clearHistory': bool(clear_history),
+      'encryptHistory': encrypt_history,
+      'clearHistory': clear_history,
     }
 
   if 'X-Inertia' in request.headers:
