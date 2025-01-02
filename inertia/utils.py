@@ -3,42 +3,36 @@ from django.db import models
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict as base_model_to_dict
 
-
 def model_to_dict(model):
-    return base_model_to_dict(model, exclude=("password",))
-
+  return base_model_to_dict(model, exclude=('password',))
 
 class InertiaJsonEncoder(DjangoJSONEncoder):
-    def default(self, value):
-        if isinstance(value, models.Model):
-            return model_to_dict(value)
-
-        if isinstance(value, QuerySet):
-            return [model_to_dict(model) for model in value]
-
-        return super().default(value)
-
+  def default(self, value):
+    if isinstance(value, models.Model):
+      return model_to_dict(value)
+    
+    if isinstance(value, QuerySet):
+      return [model_to_dict(model) for model in value]
+    
+    return super().default(value)
 
 class LazyProp:
-    def __init__(self, prop):
-        self.prop = prop
+  def __init__(self, prop):
+    self.prop = prop
 
-    def __call__(self):
-        return self.prop() if callable(self.prop) else self.prop
-
-
+  def __call__(self):
+    return self.prop() if callable(self.prop) else self.prop
+  
 class DeferredProp:
-    def __init__(self, prop, group=None):
-        self.prop = prop
-        self.group = group if group else ""
+  def __init__(self, prop, group):
+    self.prop = prop
+    self.group = group
 
-    def __call__(self):
-        return self.prop() if callable(self.prop) else self.prop
-
+  def __call__(self):
+    return self.prop() if callable(self.prop) else self.prop
 
 def lazy(prop):
-    return LazyProp(prop)
+  return LazyProp(prop)
 
-
-def defer(prop, group=None):
-    return DeferredProp(prop, group)
+def defer(prop, group="default"):
+  return DeferredProp(prop, group)
