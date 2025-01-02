@@ -41,12 +41,12 @@ def render(request, component, props={}, template_data={}):
 
   def build_deferred_props():
     if is_a_partial_render():
-        return None
+      return None
 
     _deferred_props = {}
     for key, prop in props.items():
-        if isinstance(prop, DeferredProp):
-            _deferred_props.setdefault(prop.group, []).append(key)
+      if isinstance(prop, DeferredProp):
+        _deferred_props.setdefault(prop.group, []).append(key)
 
     return _deferred_props
           
