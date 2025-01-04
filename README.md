@@ -189,7 +189,47 @@ Inertia Django ships with a custom JsonEncoder at `inertia.utils.InertiaJsonEnco
 `DjangoJSONEncoder` with additional logic to handle encoding models and Querysets. If you have other json
 encoding logic you'd prefer, you can set a new JsonEncoder via the settings.
 
-### SSR
+### History Encryption
+
+Inertia.js supports [history encryption](https://inertiajs.com/history-encryption) to protect sensitive data in the browser's history state. This is useful when your pages contain sensitive information that shouldn't be stored in plain text in the browser's history. This feature requires HTTPS since it relies on `window.crypto.subtle` which is only available in secure contexts.
+
+You can enable history encryption globally via the `INERTIA_ENCRYPT_HISTORY` setting in your `settings.py`:
+
+```python
+INERTIA_ENCRYPT_HISTORY = True
+```
+
+For more granular control, you can enable encryption on specific views:
+
+```python
+from inertia import encrypt_history, inertia
+
+@inertia('TestComponent')
+def encrypt_history_test(request):
+    encrypt_history(request)
+    return {}
+
+# If you have INERTIA_ENCRYPT_HISTORY = True but want to disable encryption for specific views:
+@inertia('PublicComponent')
+def public_view(request):
+    encrypt_history(request, False)  # Explicitly disable encryption for this view
+    return {}
+```
+
+When users log out, you might want to clear the history to ensure no sensitive data can be accessed. You can do this by extending the logout view:
+
+```python
+from inertia import clear_history
+from django.contrib.auth import views as auth_views
+
+class LogoutView(auth_views.LogoutView):
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+        clear_history(request)
+        return response
+```
+
+### SSR 
 
 #### Backend
 
@@ -211,6 +251,7 @@ INERTIA_LAYOUT = 'layout.html' # required and has no default
 INERTIA_JSON_ENCODER = CustomJsonEncoder # defaults to inertia.utils.InertiaJsonEncoder
 INERTIA_SSR_URL = 'http://localhost:13714' # defaults to http://localhost:13714
 INERTIA_SSR_ENABLED = False # defaults to False
+INERTIA_ENCRYPT_HISTORY = False # defaults to False
 ```
 
 ## Testing
