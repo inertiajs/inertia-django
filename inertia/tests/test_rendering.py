@@ -1,4 +1,5 @@
 from inertia.test import InertiaTestCase, inertia_div, inertia_page
+from pytest import warns
 
 class FirstLoadTestCase(InertiaTestCase):
   def test_with_props(self):
@@ -74,15 +75,30 @@ class SubsequentLoadTestCase(InertiaTestCase):
 
 class LazyPropsTestCase(InertiaTestCase):
   def test_lazy_props_are_not_included(self):
-    self.assertJSONResponse(
-      self.inertia.get('/lazy/'),
-      inertia_page('lazy', props={'name': 'Brian'})
-    )
+    with warns(DeprecationWarning):
+      self.assertJSONResponse(
+        self.inertia.get('/lazy/'),
+        inertia_page('lazy', props={'name': 'Brian'})
+      )
 
   def test_lazy_props_are_included_when_requested(self):
+    with warns(DeprecationWarning):
+      self.assertJSONResponse(
+        self.inertia.get('/lazy/', HTTP_X_INERTIA_PARTIAL_DATA='sport,grit', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+        inertia_page('lazy', props={'sport': 'Basketball', 'grit': 'intense'})
+      )
+
+class OptionalPropsTestCase(InertiaTestCase):
+  def test_optional_props_are_not_included(self):
     self.assertJSONResponse(
-      self.inertia.get('/lazy/', HTTP_X_INERTIA_PARTIAL_DATA='sport,grit', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
-      inertia_page('lazy', props={'sport': 'Basketball', 'grit': 'intense'})
+      self.inertia.get('/optional/'),
+      inertia_page('optional', props={'name': 'Brian'})
+    )
+
+  def test_optional_props_are_included_when_requested(self):
+    self.assertJSONResponse(
+      self.inertia.get('/optional/', HTTP_X_INERTIA_PARTIAL_DATA='sport,grit', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('optional', props={'sport': 'Basketball', 'grit': 'intense'})
     )
 
 class ComplexPropsTestCase(InertiaTestCase):

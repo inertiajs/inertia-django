@@ -1,7 +1,7 @@
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
-from inertia import inertia, render, lazy, defer, share, location
+from inertia import inertia, render, lazy, optional, defer, share, location
 from inertia.http import INERTIA_SESSION_CLEAR_HISTORY, clear_history, encrypt_history
 
 class ShareMiddleware:
@@ -50,6 +50,14 @@ def lazy_test(request):
     'name': 'Brian',
     'sport': lazy(lambda: 'Basketball'),
     'grit': lazy(lambda: 'intense'),
+  }
+
+@inertia('TestComponent')
+def optional_test(request):
+  return {
+    'name': 'Brian',
+    'sport': optional(lambda: 'Basketball'),
+    'grit': optional(lambda: 'intense'),
   }
 
 @inertia('TestComponent')
