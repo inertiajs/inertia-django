@@ -131,25 +131,25 @@ def external():
 It will generate a `409 Conflict` response and include the destination URL in the `X-Inertia-Location` header.
 When this response is received client-side, Inertia will automatically perform a `window.location = url` visit.
 
-### Lazy Props
+### Optional Props
 
 On the front end, Inertia supports the concept of "partial reloads" where only the props requested
-are returned by the server. Sometimes, you may want to use this flow to avoid processing a particularly slow prop on the intial load. In this case, you can use `Lazy props`. Lazy props aren't evaluated unless they're specifically requested by name in a partial reload.
+are returned by the server. Sometimes, you may want to use this flow to avoid processing a particularly slow prop on the intial load. In this case, you can use `Optional props`. Optional props aren't evaluated unless they're specifically requested by name in a partial reload.
 
 ```python
-from inertia import lazy, inertia
+from inertia import optional, inertia
 
 @inertia('ExampleComponent')
 def example(request):
   return {
     'name': lambda: 'Brandon', # this will be rendered on the first load as usual
-    'data': lazy(lambda: some_long_calculation()), # this will only be run when specifically requested by partial props and WILL NOT be included on the initial load
+    'data': optional(lambda: some_long_calculation()), # this will only be run when specifically requested by partial props and WILL NOT be included on the initial load
   }
 ```
 
 ### Deferred Props
 
-As of version 2.0, Inertia supports the ability to defer the fetching of props until after the page has been initially rendered. Essentially this is similar to the concept of `Lazy props` however Inertia provides convenient frontend components to automatically fetch the deferred props after the page has initially loaded, instead of requiring the user to initiate a reload. For more info, see [Deferred props](https://inertiajs.com/deferred-props) in the Inertia documentation.
+As of version 2.0, Inertia supports the ability to defer the fetching of props until after the page has been initially rendered. Essentially this is similar to the concept of `Optional props` however Inertia provides convenient frontend components to automatically fetch the deferred props after the page has initially loaded, instead of requiring the user to initiate a reload. For more info, see [Deferred props](https://inertiajs.com/deferred-props) in the Inertia documentation.
 
 To mark props as deferred on the server side use the `defer` function.
 
