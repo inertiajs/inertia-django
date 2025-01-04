@@ -5,7 +5,7 @@ from .settings import settings
 from json import dumps as json_encode
 from functools import wraps
 import requests
-from .utils import LazyProp
+from .utils import DeferredProp, LazyProp
 
 INERTIA_REQUEST_ENCRYPT_HISTORY = "_inertia_encrypt_history"
 INERTIA_SESSION_CLEAR_HISTORY = "_inertia_clear_history"
@@ -37,11 +37,22 @@ def render(request, component, props={}, template_data={}):
         if key not in partial_keys():
           del _props[key]
       else:
-        if isinstance(_props[key], LazyProp):
+        if isinstance(_props[key], LazyProp) or isinstance(_props[key], DeferredProp):
           del _props[key]
 
     return deep_transform_callables(_props)
 
+  def build_deferred_props():
+    if is_a_partial_render():
+      return None
+
+    _deferred_props = {}
+    for key, prop in props.items():
+      if isinstance(prop, DeferredProp):
+        _deferred_props.setdefault(prop.group, []).append(key)
+
+    return _deferred_props
+          
   def render_ssr():
     data = json_encode(page_data(), cls=settings.INERTIA_JSON_ENCODER)
     response = requests.post(
@@ -64,7 +75,7 @@ def render(request, component, props={}, template_data={}):
     if not isinstance(clear_history, bool):
       raise TypeError(f"Expected boolean for clear_history, got {type(clear_history).__name__}")
 
-    return {
+    _page = {
       'component': component,
       'props': build_props(),
       'url': request.build_absolute_uri(),
@@ -72,6 +83,12 @@ def render(request, component, props={}, template_data={}):
       'encryptHistory': encrypt_history,
       'clearHistory': clear_history,
     }
+
+    _deferred_props = build_deferred_props()
+    if _deferred_props:
+      _page['deferredProps'] = _deferred_props
+    
+    return _page
 
   if 'X-Inertia' in request.headers:
     return JsonResponse(

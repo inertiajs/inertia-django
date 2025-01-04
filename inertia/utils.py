@@ -23,6 +23,16 @@ class LazyProp:
   def __call__(self):
     return self.prop() if callable(self.prop) else self.prop
   
+class DeferredProp:
+  def __init__(self, prop, group):
+    self.prop = prop
+    self.group = group
+
+  def __call__(self):
+    return self.prop() if callable(self.prop) else self.prop
 
 def lazy(prop):
   return LazyProp(prop)
+
+def defer(prop, group="default"):
+  return DeferredProp(prop, group)

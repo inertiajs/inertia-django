@@ -109,3 +109,40 @@ class CSRFTestCase(InertiaTestCase):
     response = self.client.get('/props/')
 
     self.assertIsNotNone(response.cookies.get('csrftoken'))
+
+class DeferredPropsTestCase(InertiaTestCase):
+  def test_deferred_props_are_set(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer/'),
+      inertia_page(
+        'defer', 
+        props={'name': 'Brian'}, 
+        deferred_props={'default': ['sport']})
+    )
+
+  def test_deferred_props_are_grouped(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer-group/'),
+      inertia_page(
+        'defer-group', 
+        props={'name': 'Brian'}, 
+        deferred_props={'group': ['sport', 'team'], 'default': ['grit']}) 
+    )
+
+  def test_deferred_props_are_included_when_requested(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer/', HTTP_X_INERTIA_PARTIAL_DATA='sport', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('defer', props={'sport': 'Basketball'})
+    )
+  
+
+  def test_only_deferred_props_in_group_are_included_when_requested(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer-group/', HTTP_X_INERTIA_PARTIAL_DATA='sport,team', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('defer-group', props={'sport': 'Basketball', 'team': 'Bulls'})
+    )
+
+    self.assertJSONResponse(
+      self.inertia.get('/defer-group/', HTTP_X_INERTIA_PARTIAL_DATA='grit', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('defer-group', props={'grit': 'intense'})
+    )
