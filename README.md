@@ -183,6 +183,34 @@ def example(request):
 
 In the example above, the `data1`, and `data2` props will be fetched in one request, while the `data` prop will be fetched in a separate request in parallel. Group names are arbitrary strings and can be anything you choose.
 
+### Merge Props
+
+By default, Inertia overwrites props with the same name when reloading a page. However, there are instances, such as pagination or infinite scrolling, where that is not the desired behavior. In these cases, you can merge props instead of overwriting them.
+
+```python
+from inertia import merge, inertia
+
+@inertia('ExampleComponent')
+def example(request):
+  return {
+    'name': lambda: 'Brandon', 
+    'data': merge(Paginator(objects, 3)), 
+  }
+```
+
+You can also combine deferred props with mergeable props to defer the loading of the prop and ultimately mark it as mergeable once it's loaded.
+
+```python
+from inertia import defer, inertia
+
+@inertia('ExampleComponent')
+def example(request):
+  return {
+    'name': lambda: 'Brandon', 
+    'data': defer(lambda: Paginator(objects, 3), merge=True), 
+  }
+```
+
 ### Json Encoding
 
 Inertia Django ships with a custom JsonEncoder at `inertia.utils.InertiaJsonEncoder` that extends Django's
