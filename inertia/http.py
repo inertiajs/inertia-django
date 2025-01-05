@@ -5,7 +5,7 @@ from .settings import settings
 from json import dumps as json_encode
 from functools import wraps
 import requests
-from .utils import DeferredProp, LazyProp
+from .prop_classes import IgnoreOnFirstLoadProp, DeferredProp, MergeableProp
 
 INERTIA_REQUEST_ENCRYPT_HISTORY = "_inertia_encrypt_history"
 INERTIA_SESSION_CLEAR_HISTORY = "_inertia_clear_history"
@@ -37,7 +37,7 @@ def render(request, component, props={}, template_data={}):
         if key not in partial_keys():
           del _props[key]
       else:
-        if isinstance(_props[key], LazyProp) or isinstance(_props[key], DeferredProp):
+        if isinstance(_props[key], IgnoreOnFirstLoadProp):
           del _props[key]
 
     return deep_transform_callables(_props)
@@ -52,7 +52,20 @@ def render(request, component, props={}, template_data={}):
         _deferred_props.setdefault(prop.group, []).append(key)
 
     return _deferred_props
-          
+  
+  def build_merge_props():
+    reset_keys = request.headers.get('X-Inertia-Reset', '').split(',')
+
+    return [
+      key 
+      for key, prop in props.items()
+      if (
+        isinstance(prop, MergeableProp)
+        and prop.should_merge()
+        and key not in reset_keys
+      )
+    ]
+    
   def render_ssr():
     data = json_encode(page_data(), cls=settings.INERTIA_JSON_ENCODER)
     response = requests.post(
@@ -87,6 +100,10 @@ def render(request, component, props={}, template_data={}):
     _deferred_props = build_deferred_props()
     if _deferred_props:
       _page['deferredProps'] = _deferred_props
+    
+    _merge_props = build_merge_props()
+    if _merge_props:
+      _page['mergeProps'] = _merge_props
     
     return _page
 

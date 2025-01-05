@@ -1,7 +1,7 @@
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
-from inertia import inertia, render, lazy, optional, defer, share, location
+from inertia import inertia, render, lazy, merge, optional, defer, share, location
 from inertia.http import INERTIA_SESSION_CLEAR_HISTORY, clear_history, encrypt_history
 
 class ShareMiddleware:
@@ -75,6 +75,14 @@ def defer_group_test(request):
     'sport': defer(lambda: 'Basketball', 'group'),
     'team': defer(lambda: 'Bulls', 'group'),
     'grit': defer(lambda: 'intense')
+  }
+
+@inertia('TestComponent')
+def merge_test(request):
+  return {
+    'name': 'Brandon',
+    'sport': merge(lambda: 'Hockey'),
+    'team': defer(lambda: 'Penguins', merge=True),
   }
 
 @inertia('TestComponent')

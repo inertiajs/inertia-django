@@ -29,6 +29,12 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
 
   def props(self):
     return self.page()['props']
+  
+  def merge_props(self):
+    return self.page()['mergeProps']
+  
+  def deferred_props(self):
+    return self.page()['deferredProps']
 
   def template_data(self):
     context = self.mock_render.call_args.args[2]
@@ -53,7 +59,7 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
   def assertComponentUsed(self, component_name):
     self.assertEqual(component_name, self.component())
 
-def inertia_page(url, component='TestComponent', props={}, template_data={}, deferred_props=None):
+def inertia_page(url, component='TestComponent', props={}, template_data={}, deferred_props=None, merge_props=None):
   _page = {
     'component': component,
     'props': props,
@@ -65,6 +71,9 @@ def inertia_page(url, component='TestComponent', props={}, template_data={}, def
 
   if deferred_props:
     _page['deferredProps'] = deferred_props
+  
+  if merge_props:
+    _page['mergeProps'] = merge_props
     
   return _page
 

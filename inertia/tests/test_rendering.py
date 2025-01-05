@@ -162,3 +162,36 @@ class DeferredPropsTestCase(InertiaTestCase):
       self.inertia.get('/defer-group/', HTTP_X_INERTIA_PARTIAL_DATA='grit', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
       inertia_page('defer-group', props={'grit': 'intense'})
     )
+
+class MergePropsTestCase(InertiaTestCase):
+  def test_merge_props_are_included_on_initial_load(self):
+    self.assertJSONResponse(
+      self.inertia.get('/merge/'),
+      inertia_page('merge', props={
+        'name': 'Brandon',
+        'sport': 'Hockey',
+      }, merge_props=['sport', 'team'], deferred_props={'default': ['team']})
+    )
+
+
+  def test_deferred_merge_props_are_included_on_subsequent_load(self):
+    self.assertJSONResponse(
+      self.inertia.get('/merge/', HTTP_X_INERTIA_PARTIAL_DATA='team', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('merge', props={
+        'team': 'Penguins',
+      }, merge_props=['sport', 'team'])
+    )
+  
+  def test_merge_props_are_not_included_when_reset(self):
+    self.assertJSONResponse(
+      self.inertia.get(
+        '/merge/',
+        HTTP_X_INERTIA_PARTIAL_DATA='sport,team',
+        HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent',
+        HTTP_X_INERTIA_RESET='sport,team'
+      ),
+      inertia_page('merge', props={
+        'sport': 'Hockey',
+        'team': 'Penguins',
+      })
+    )
