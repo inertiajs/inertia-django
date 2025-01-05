@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "inertia-django"
-version = "0.6.0"
+version = "1.0.0"
 description = "Django adapter for the InertiaJS framework"
 authors = ["Brandon Shar <brandon@bellawatt.com>"]
 license = "MIT"

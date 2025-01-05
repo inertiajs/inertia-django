@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-01-05
+* Inertia V2 Support
+* * Encrypt History. Thanks @svengt!
+* * Deferred Props. Thanks @mrfolksy!
+* * Optional props and deprecate lazy
+* * Merge Props
+* Location function. Thanks @keinstn!
+
 ## [0.6.0] - 2024-01-26
 * Allow Django >=4 Thanks @pmdevita!
 
