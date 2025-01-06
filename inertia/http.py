@@ -56,36 +56,7 @@ class InertiaRequest:
       name="clear_history"
     )
 
-class InertiaResponse(HttpResponse):
-  json_encoder = settings.INERTIA_JSON_ENCODER
-
-  def __init__(self, request, component, props={}, template_data={}, headers={}, *args, **kwargs):
-    self.request = InertiaRequest(request)
-    self.component = component
-    self.props = props
-    self.template_data = template_data
-
-    data = json_encode(self.page_data(), cls=self.json_encoder)
-
-    if self.request.is_inertia():
-      headers = {
-        **headers,
-        'Vary': 'X-Inertia',
-        'X-Inertia': 'true',
-        'Content-Type': 'application/json',
-      }
-      content = data
-    else:    
-      content = self.build_first_load(data)
-    
-    super().__init__(
-      content=content,
-      headers=headers,
-      *args,
-      **kwargs,
-    )
-
-    # super something goes here
+class BaseInertiaResponseMixin:
   def page_data(self):
     _page = {
       'component': self.component,
@@ -175,6 +146,36 @@ class InertiaResponse(HttpResponse):
       'page': data,
       **(self.template_data),
     }, INERTIA_TEMPLATE
+
+
+class InertiaResponse(HttpResponse, BaseInertiaResponseMixin):
+  json_encoder = settings.INERTIA_JSON_ENCODER
+
+  def __init__(self, request, component, props={}, template_data={}, headers={}, *args, **kwargs):
+    self.request = InertiaRequest(request)
+    self.component = component
+    self.props = props
+    self.template_data = template_data
+
+    data = json_encode(self.page_data(), cls=self.json_encoder)
+
+    if self.request.is_inertia():
+      headers = {
+        **headers,
+        'Vary': 'X-Inertia',
+        'X-Inertia': 'true',
+        'Content-Type': 'application/json',
+      }
+      content = data
+    else:    
+      content = self.build_first_load(data)
+    
+    super().__init__(
+      content=content,
+      headers=headers,
+      *args,
+      **kwargs,
+    )
 
 def render(request, component, props={}, template_data={}):
   return InertiaResponse(
