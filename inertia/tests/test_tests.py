@@ -1,8 +1,5 @@
 from inertia.test import InertiaTestCase
 
-class SomeError(Exception):
-  pass
-
 class TestTestCase(InertiaTestCase):
 
   def test_include_props(self):
