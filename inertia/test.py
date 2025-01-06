@@ -29,6 +29,12 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
 
   def props(self):
     return self.page()['props']
+  
+  def merge_props(self):
+    return self.page()['mergeProps']
+  
+  def deferred_props(self):
+    return self.page()['deferredProps']
 
   def template_data(self):
     context = self.mock_render.call_args.args[2]
@@ -74,5 +80,3 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
   def inertia_div(*args, **kwargs):
     page = inertia_page(*args, **kwargs)
     return f'<div id="app" data-page="{escape(dumps(page))}"></div>'
-
-

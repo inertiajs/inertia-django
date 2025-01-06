@@ -30,3 +30,11 @@ class MiddlewareTestCase(InertiaTestCase):
     )
 
     self.assertEqual(response.status_code, 200)
+
+  def test_external_redirect_status(self):
+    response = self.inertia.post('/external-redirect/')
+    self.assertEqual(response.status_code, 409)
+    self.assertIn("X-Inertia-Location", response.headers)
+    self.assertEqual(
+      "http://foobar.com/", response.headers["X-Inertia-Location"]
+    )

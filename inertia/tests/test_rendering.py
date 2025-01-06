@@ -1,4 +1,5 @@
 from inertia.test import InertiaTestCase, inertia_div, inertia_page
+from pytest import warns
 
 class FirstLoadTestCase(InertiaTestCase):
   def test_with_props(self):
@@ -74,15 +75,30 @@ class SubsequentLoadTestCase(InertiaTestCase):
 
 class LazyPropsTestCase(InertiaTestCase):
   def test_lazy_props_are_not_included(self):
-    self.assertJSONResponse(
-      self.inertia.get('/lazy/'),
-      inertia_page('lazy', props={'name': 'Brian'})
-    )
+    with warns(DeprecationWarning):
+      self.assertJSONResponse(
+        self.inertia.get('/lazy/'),
+        inertia_page('lazy', props={'name': 'Brian'})
+      )
 
   def test_lazy_props_are_included_when_requested(self):
+    with warns(DeprecationWarning):
+      self.assertJSONResponse(
+        self.inertia.get('/lazy/', HTTP_X_INERTIA_PARTIAL_DATA='sport,grit', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+        inertia_page('lazy', props={'sport': 'Basketball', 'grit': 'intense'})
+      )
+
+class OptionalPropsTestCase(InertiaTestCase):
+  def test_optional_props_are_not_included(self):
     self.assertJSONResponse(
-      self.inertia.get('/lazy/', HTTP_X_INERTIA_PARTIAL_DATA='sport,grit', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
-      inertia_page('lazy', props={'sport': 'Basketball', 'grit': 'intense'})
+      self.inertia.get('/optional/'),
+      inertia_page('optional', props={'name': 'Brian'})
+    )
+
+  def test_optional_props_are_included_when_requested(self):
+    self.assertJSONResponse(
+      self.inertia.get('/optional/', HTTP_X_INERTIA_PARTIAL_DATA='sport,grit', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('optional', props={'sport': 'Basketball', 'grit': 'intense'})
     )
 
 class ComplexPropsTestCase(InertiaTestCase):
@@ -109,3 +125,73 @@ class CSRFTestCase(InertiaTestCase):
     response = self.client.get('/props/')
 
     self.assertIsNotNone(response.cookies.get('csrftoken'))
+
+class DeferredPropsTestCase(InertiaTestCase):
+  def test_deferred_props_are_set(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer/'),
+      inertia_page(
+        'defer', 
+        props={'name': 'Brian'}, 
+        deferred_props={'default': ['sport']})
+    )
+
+  def test_deferred_props_are_grouped(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer-group/'),
+      inertia_page(
+        'defer-group', 
+        props={'name': 'Brian'}, 
+        deferred_props={'group': ['sport', 'team'], 'default': ['grit']}) 
+    )
+
+  def test_deferred_props_are_included_when_requested(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer/', HTTP_X_INERTIA_PARTIAL_DATA='sport', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('defer', props={'sport': 'Basketball'})
+    )
+  
+
+  def test_only_deferred_props_in_group_are_included_when_requested(self):
+    self.assertJSONResponse(
+      self.inertia.get('/defer-group/', HTTP_X_INERTIA_PARTIAL_DATA='sport,team', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('defer-group', props={'sport': 'Basketball', 'team': 'Bulls'})
+    )
+
+    self.assertJSONResponse(
+      self.inertia.get('/defer-group/', HTTP_X_INERTIA_PARTIAL_DATA='grit', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('defer-group', props={'grit': 'intense'})
+    )
+
+class MergePropsTestCase(InertiaTestCase):
+  def test_merge_props_are_included_on_initial_load(self):
+    self.assertJSONResponse(
+      self.inertia.get('/merge/'),
+      inertia_page('merge', props={
+        'name': 'Brandon',
+        'sport': 'Hockey',
+      }, merge_props=['sport', 'team'], deferred_props={'default': ['team']})
+    )
+
+
+  def test_deferred_merge_props_are_included_on_subsequent_load(self):
+    self.assertJSONResponse(
+      self.inertia.get('/merge/', HTTP_X_INERTIA_PARTIAL_DATA='team', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
+      inertia_page('merge', props={
+        'team': 'Penguins',
+      }, merge_props=['sport', 'team'])
+    )
+  
+  def test_merge_props_are_not_included_when_reset(self):
+    self.assertJSONResponse(
+      self.inertia.get(
+        '/merge/',
+        HTTP_X_INERTIA_PARTIAL_DATA='sport,team',
+        HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent',
+        HTTP_X_INERTIA_RESET='sport,team'
+      ),
+      inertia_page('merge', props={
+        'sport': 'Hockey',
+        'team': 'Penguins',
+      })
+    )
