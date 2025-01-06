@@ -4,8 +4,7 @@ from django.test import override_settings
 from django.test.client import RequestFactory
 from inertia.tests.testapp.views import empty_test
 
-
-class MiddlewareTestCase(InertiaTestCase):
+class HistoryTestCase(InertiaTestCase):
   def test_encrypt_history_setting(self):
     self.client.get('/empty/')
     assert self.page()['encryptHistory'] is False
@@ -32,8 +31,8 @@ class MiddlewareTestCase(InertiaTestCase):
     assert self.page()['clearHistory'] is True
 
   def test_raises_type_error(self):
-    with self.assertRaisesMessage(TypeError, 'Expected boolean for encrypt_history, got str'):
+    with self.assertRaisesMessage(TypeError, 'Expected bool for encrypt_history, got str'):
       self.client.get('/encrypt-history-type-error/')
 
-    with self.assertRaisesMessage(TypeError, 'Expected boolean for clear_history, got str'):
+    with self.assertRaisesMessage(TypeError, 'Expected bool for clear_history, got str'):
       self.client.get('/clear-history-type-error/')

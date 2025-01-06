@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import class_based_views
 
 urlpatterns = [
   path('test/', views.test),
@@ -22,4 +23,6 @@ urlpatterns = [
   path('clear-history/', views.clear_history_test),
   path('clear-history-redirect/', views.clear_history_redirect_test),
   path('clear-history-type-error/', views.clear_history_type_error_test),
+
+  
 ]
