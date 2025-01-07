@@ -58,8 +58,8 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
 
   def assertComponentUsed(self, component_name):
     self.assertEqual(component_name, self.component())
-    
-  def inertia_page(url, component='TestComponent', props={}, template_data={}, deferred_props=None, merge_props=None):
+
+def inertia_page(url, component='TestComponent', props={}, template_data={}, deferred_props=None, merge_props=None):
     _page = {
         'component': component,
         'props': props,
@@ -76,7 +76,7 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
         _page['mergeProps'] = merge_props
 
     return _page
-
-  def inertia_div(*args, **kwargs):
+  
+def inertia_div(*args, **kwargs):
     page = inertia_page(*args, **kwargs)
     return f'<div id="app" data-page="{escape(dumps(page))}"></div>'
