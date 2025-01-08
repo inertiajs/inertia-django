@@ -12,12 +12,19 @@ class FirstLoadTestCase(InertiaTestCase):
     )
 
   def test_with_template_data(self):
+    response = self.client.get('/template_data/')
+
     self.assertContains(
-      self.client.get('/template_data/'),
+      response,
       inertia_div('template_data', template_data={
         'name': 'Brian',
         'sport': 'Basketball',
       })
+    )
+
+    self.assertContains(
+      response,
+      'template data:Brian, Basketball'
     )
 
   def test_with_no_data(self):
@@ -114,6 +121,8 @@ class ShareTestCase(InertiaTestCase):
       self.inertia.get('/share/'),
       inertia_page('share', props={'name': 'Brandon', 'position': 'goalie', 'number': 29})
     )
+
+    self.assertHasExactProps({'name': 'Brandon', 'position': 'goalie', 'number': 29})
 
 class CSRFTestCase(InertiaTestCase):
   def test_that_csrf_inclusion_is_automatic(self):

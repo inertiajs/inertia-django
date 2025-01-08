@@ -95,6 +95,22 @@ def index(request):
   }
 ```
 
+If you need more control, you can also directly return the InertiaResponse class. It has the same arguments as the render method and subclasses HttpResponse to accept of all its arguments as well.
+
+```python
+from inertia import InertiaResponse
+from .models import Event
+
+def index(request):
+  return InertiaResponse(
+    request,
+    'Event/Index',
+    props={
+      'events': Event.objects.all()
+    }
+  )
+```
+
 ### Shared Data
 
 If you have data that you want to be provided as a prop to every component (a common use-case is information about the authenticated user) you can use the `share` method. A common place to put this would be in some custom middleware.
