@@ -29,9 +29,25 @@ class SSRTestCase(InertiaTestCase):
       headers={'Content-Type': 'application/json'},
     )
     self.assertTemplateUsed('inertia_ssr.html')
-    print(response.content)
     self.assertContains(response, '<div>Body Works</div>')
     self.assertContains(response, 'head--<title>Head works</title>--head')
+  
+  @patch('inertia.http.requests')
+  def test_it_returns_ssr_calls_with_template_data(self, mock_request):
+    mock_response = Mock()
+    mock_response.json.return_value = {
+      'body': '<div>Body Works</div>',
+      'head': '<title>Head works</title>',
+    }
+
+    mock_request.post.return_value = mock_response
+    
+    response = self.client.get('/template_data/')
+
+    self.assertTemplateUsed('inertia_ssr.html')
+    self.assertContains(response, '<div>Body Works</div>')
+    self.assertContains(response, 'head--<title>Head works</title>--head')
+    self.assertContains(response, 'Brian, Basketball')
 
 
   @patch('inertia.http.requests')

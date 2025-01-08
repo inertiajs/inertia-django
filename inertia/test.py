@@ -1,12 +1,9 @@
 from django.test import TestCase, Client
 from unittest.mock import patch
-from django.http.response import JsonResponse, HttpResponse as BaseHttpResponse
 from django.template.loader import render_to_string as base_render_to_string
 from inertia.settings import settings
 from json import dumps, loads
 from django.utils.html import escape
-from django.shortcuts import render
-from .http import HttpResponse, render_to_string
 
 class ClientWithLastResponse:
   def __init__(self, client):
@@ -82,7 +79,7 @@ def inertia_page(url, component='TestComponent', props={}, template_data={}, def
   _page = {
     'component': component,
     'props': props,
-    'url': f'http://testserver/{url}/',
+    'url': f'/{url}/',
     'version': settings.INERTIA_VERSION,
     'encryptHistory': False,
     'clearHistory': False,

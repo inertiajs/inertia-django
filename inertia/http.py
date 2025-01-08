@@ -1,7 +1,6 @@
 from http import HTTPStatus
 from django.template.loader import render_to_string
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render as base_render
+from django.http import HttpResponse
 from .settings import settings
 from json import dumps as json_encode
 from functools import wraps
@@ -49,22 +48,21 @@ class InertiaRequest:
       name="encrypt_history"
     )
 
-  def should_clear_history(self):
-    return validate_type(
+class BaseInertiaResponseMixin:
+  def page_data(self):
+    clear_history = validate_type(
       self.request.session.pop(INERTIA_SESSION_CLEAR_HISTORY, False),
       expected_type=bool,
       name="clear_history"
     )
-
-class BaseInertiaResponseMixin:
-  def page_data(self):
+      
     _page = {
       'component': self.component,
       'props': self.build_props(),
-      'url': self.request.build_absolute_uri(),
+      'url': self.request.get_full_path(),
       'version': settings.INERTIA_VERSION,
       'encryptHistory': self.request.should_encrypt_history(),
-      'clearHistory': self.request.should_clear_history(),
+      'clearHistory': clear_history,
     }
 
     _deferred_props = self.build_deferred_props()
@@ -138,7 +136,10 @@ class BaseInertiaResponseMixin:
           headers={"Content-Type": "application/json"},
         )
         response.raise_for_status()
-        return response.json(), INERTIA_SSR_TEMPLATE
+        return {
+          **response.json(),
+          **self.template_data,
+        }, INERTIA_SSR_TEMPLATE
       except Exception:
         pass
     
@@ -148,20 +149,21 @@ class BaseInertiaResponseMixin:
     }, INERTIA_TEMPLATE
 
 
-class InertiaResponse(HttpResponse, BaseInertiaResponseMixin):
+class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
   json_encoder = settings.INERTIA_JSON_ENCODER
 
-  def __init__(self, request, component, props={}, template_data={}, headers={}, *args, **kwargs):
+  def __init__(self, request, component, props=None, template_data=None, headers=None, *args, **kwargs):
     self.request = InertiaRequest(request)
     self.component = component
-    self.props = props
-    self.template_data = template_data
+    self.props = props or {}
+    self.template_data = template_data or {}
+    _headers = headers or {}
 
     data = json_encode(self.page_data(), cls=self.json_encoder)
 
     if self.request.is_inertia():
-      headers = {
-        **headers,
+      _headers = {
+        **_headers,
         'Vary': 'X-Inertia',
         'X-Inertia': 'true',
         'Content-Type': 'application/json',
@@ -172,17 +174,17 @@ class InertiaResponse(HttpResponse, BaseInertiaResponseMixin):
     
     super().__init__(
       content=content,
-      headers=headers,
+      headers=_headers,
       *args,
       **kwargs,
     )
 
-def render(request, component, props={}, template_data={}):
+def render(request, component, props=None, template_data=None):
   return InertiaResponse(
     request,
     component,
-    props,
-    template_data
+    props or {},
+    template_data or {}
   )
 
 def location(location):
