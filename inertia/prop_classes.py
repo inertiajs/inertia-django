@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class CallableProp(ABC):
+class CallableProp:
     def __init__(self, prop):
         self.prop = prop
 
@@ -15,7 +15,7 @@ class MergeableProp(ABC):
         pass
 
 
-class IgnoreOnFirstLoadProp(ABC):
+class IgnoreOnFirstLoadProp:
     pass
 
 
