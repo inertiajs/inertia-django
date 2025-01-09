@@ -96,11 +96,13 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
 def inertia_page(
     url,
     component="TestComponent",
-    props={},
-    template_data={},
+    props=None,
+    template_data=None,
     deferred_props=None,
     merge_props=None,
 ):
+    props = props or {}
+    template_data = template_data or {}
     _page = {
         "component": component,
         "props": props,
