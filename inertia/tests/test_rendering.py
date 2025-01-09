@@ -1,5 +1,7 @@
-from inertia.test import InertiaTestCase, inertia_div, inertia_page
 from pytest import warns
+
+from inertia.test import InertiaTestCase, inertia_div, inertia_page
+
 
 class FirstLoadTestCase(InertiaTestCase):
   def test_with_props(self):
@@ -140,8 +142,8 @@ class DeferredPropsTestCase(InertiaTestCase):
     self.assertJSONResponse(
       self.inertia.get('/defer/'),
       inertia_page(
-        'defer', 
-        props={'name': 'Brian'}, 
+        'defer',
+        props={'name': 'Brian'},
         deferred_props={'default': ['sport']})
     )
 
@@ -149,9 +151,9 @@ class DeferredPropsTestCase(InertiaTestCase):
     self.assertJSONResponse(
       self.inertia.get('/defer-group/'),
       inertia_page(
-        'defer-group', 
-        props={'name': 'Brian'}, 
-        deferred_props={'group': ['sport', 'team'], 'default': ['grit']}) 
+        'defer-group',
+        props={'name': 'Brian'},
+        deferred_props={'group': ['sport', 'team'], 'default': ['grit']})
     )
 
   def test_deferred_props_are_included_when_requested(self):
@@ -159,7 +161,7 @@ class DeferredPropsTestCase(InertiaTestCase):
       self.inertia.get('/defer/', HTTP_X_INERTIA_PARTIAL_DATA='sport', HTTP_X_INERTIA_PARTIAL_COMPONENT='TestComponent'),
       inertia_page('defer', props={'sport': 'Basketball'})
     )
-  
+
 
   def test_only_deferred_props_in_group_are_included_when_requested(self):
     self.assertJSONResponse(
@@ -190,7 +192,7 @@ class MergePropsTestCase(InertiaTestCase):
         'team': 'Penguins',
       }, merge_props=['sport', 'team'])
     )
-  
+
   def test_merge_props_are_not_included_when_reset(self):
     self.assertJSONResponse(
       self.inertia.get(

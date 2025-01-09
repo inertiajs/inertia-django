@@ -1,12 +1,14 @@
-from http import HTTPStatus
-from django.template.loader import render_to_string
-from django.http import HttpResponse
-from .settings import settings
-from json import dumps as json_encode
 from functools import wraps
+from http import HTTPStatus
+from json import dumps as json_encode
+
 import requests
-from .prop_classes import IgnoreOnFirstLoadProp, DeferredProp, MergeableProp
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+
 from .helpers import deep_transform_callables, validate_type
+from .prop_classes import DeferredProp, IgnoreOnFirstLoadProp, MergeableProp
+from .settings import settings
 
 INERTIA_REQUEST_ENCRYPT_HISTORY = "_inertia_encrypt_history"
 INERTIA_SESSION_CLEAR_HISTORY = "_inertia_clear_history"
@@ -17,27 +19,27 @@ INERTIA_SSR_TEMPLATE = 'inertia_ssr.html'
 class InertiaRequest:
   def __init__(self, request):
     self.request = request
-  
+
   def __getattr__(self, name):
     return getattr(self.request, name)
-  
+
   @property
   def headers(self):
     return self.request.headers
-  
+
   @property
   def inertia(self):
     return self.request.inertia.all() if hasattr(self.request, 'inertia') else {}
-  
+
   def is_a_partial_render(self, component):
     return 'X-Inertia-Partial-Data' in self.headers and self.headers.get('X-Inertia-Partial-Component', '') == component
 
   def partial_keys(self):
     return self.headers.get('X-Inertia-Partial-Data', '').split(',')
-  
+
   def reset_keys(self):
     return self.headers.get('X-Inertia-Reset', '').split(',')
-  
+
   def is_inertia(self):
     return 'X-Inertia' in self.headers
 
@@ -55,7 +57,7 @@ class BaseInertiaResponseMixin:
       expected_type=bool,
       name="clear_history"
     )
-      
+
     _page = {
       'component': self.component,
       'props': self.build_props(),
@@ -68,11 +70,11 @@ class BaseInertiaResponseMixin:
     _deferred_props = self.build_deferred_props()
     if _deferred_props:
       _page['deferredProps'] = _deferred_props
-    
+
     _merge_props = self.build_merge_props()
     if _merge_props:
       _page['mergeProps'] = _merge_props
-    
+
     return _page
 
   def build_props(self):
@@ -104,7 +106,7 @@ class BaseInertiaResponseMixin:
 
   def build_merge_props(self):
     return [
-      key 
+      key
       for key, prop in self.props.items()
       if (
         isinstance(prop, MergeableProp)
@@ -112,7 +114,7 @@ class BaseInertiaResponseMixin:
         and key not in self.request.reset_keys()
       )
     ]
-  
+
   def build_first_load(self, data):
     context, template = self.build_first_load_context_and_template(data)
 
@@ -126,10 +128,10 @@ class BaseInertiaResponseMixin:
       using=None,
     )
 
-  
+
   def build_first_load_context_and_template(self, data):
     if settings.INERTIA_SSR_ENABLED:
-      try: 
+      try:
         response = requests.post(
           f"{settings.INERTIA_SSR_URL}/render",
           data=data,
@@ -142,7 +144,7 @@ class BaseInertiaResponseMixin:
         }, INERTIA_SSR_TEMPLATE
       except Exception:
         pass
-    
+
     return {
       'page': data,
       **(self.template_data),
@@ -169,9 +171,9 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
         'Content-Type': 'application/json',
       }
       content = data
-    else:    
+    else:
       content = self.build_first_load(data)
-    
+
     super().__init__(
       content=content,
       headers=_headers,
@@ -209,7 +211,7 @@ def inertia(component):
         return props
 
       return render(request, component, props)
-    
+
     return inner
-  
+
   return decorator

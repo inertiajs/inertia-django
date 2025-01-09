@@ -1,5 +1,7 @@
-from inertia.test import InertiaTestCase
 from django.test import override_settings
+
+from inertia.test import InertiaTestCase
+
 
 class SettingsTestCase(InertiaTestCase):
   @override_settings(

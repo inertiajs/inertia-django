@@ -1,8 +1,7 @@
-from inertia.http import encrypt_history
-from inertia.test import InertiaTestCase
 from django.test import override_settings
-from django.test.client import RequestFactory
-from inertia.tests.testapp.views import empty_test
+
+from inertia.test import InertiaTestCase
+
 
 class HistoryTestCase(InertiaTestCase):
   def test_encrypt_history_setting(self):

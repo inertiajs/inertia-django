@@ -1,8 +1,11 @@
-from inertia.tests.testapp.models import User
-from django.test import TestCase
-from inertia.utils import InertiaJsonEncoder
-from json import dumps
 from datetime import date, datetime
+from json import dumps
+
+from django.test import TestCase
+
+from inertia.tests.testapp.models import User
+from inertia.utils import InertiaJsonEncoder
+
 
 class InertiaJsonEncoderTestCase(TestCase):
   def setUp(self):

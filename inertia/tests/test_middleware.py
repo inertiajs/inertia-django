@@ -1,5 +1,5 @@
-from django.test import TestCase, Client, override_settings
 from inertia.test import InertiaTestCase
+
 
 class MiddlewareTestCase(InertiaTestCase):
   def test_anything(self):

@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-import warnings
+
 
 class CallableProp(ABC):
   def __init__(self, prop):
     self.prop = prop
-  
+
   def __call__(self):
     return self.prop() if callable(self.prop) else self.prop
 
@@ -24,7 +24,7 @@ class DeferredProp(CallableProp, MergeableProp, IgnoreOnFirstLoadProp):
     super().__init__(prop)
     self.group = group
     self.merge = merge
-  
+
   def should_merge(self):
     return self.merge
 

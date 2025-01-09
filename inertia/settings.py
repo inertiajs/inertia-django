@@ -1,4 +1,5 @@
 from django.conf import settings as django_settings
+
 from .utils import InertiaJsonEncoder
 
 __all__ = ['settings']
@@ -9,7 +10,7 @@ class InertiaSettings:
   INERTIA_SSR_URL = 'http://localhost:13714'
   INERTIA_SSR_ENABLED = False
   INERTIA_ENCRYPT_HISTORY = False
-  
+
   def __getattribute__(self, name):
     try:
       return getattr(django_settings, name)

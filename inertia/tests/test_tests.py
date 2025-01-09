@@ -1,5 +1,6 @@
 from inertia.test import InertiaTestCase
 
+
 class TestTestCase(InertiaTestCase):
 
   def test_include_props(self):

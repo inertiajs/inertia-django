@@ -1,19 +1,22 @@
-from django.test import TestCase, Client
-from unittest.mock import patch
-from django.template.loader import render_to_string as base_render_to_string
-from inertia.settings import settings
 from json import dumps, loads
+from unittest.mock import patch
+
+from django.template.loader import render_to_string as base_render_to_string
+from django.test import Client, TestCase
 from django.utils.html import escape
+
+from inertia.settings import settings
+
 
 class ClientWithLastResponse:
   def __init__(self, client):
     self.client = client
     self.last_response = None
-  
+
   def get(self, *args, **kwargs):
     self.last_response = self.client.get(*args, **kwargs)
     return self.last_response
-  
+
   def __getattr__(self, name):
     return getattr(self.client, name)
 
@@ -21,7 +24,7 @@ class BaseInertiaTestCase:
   def setUp(self):
     self.inertia = ClientWithLastResponse(Client(HTTP_X_INERTIA=True))
     self.client = ClientWithLastResponse(Client())
-  
+
   def last_response(self):
     return self.inertia.last_response or self.client.last_response
 
@@ -41,15 +44,15 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
 
   def page(self):
     page_data = self.mock_render.call_args[0][1]['page'] if self.mock_render.call_args else self.last_response().content
-    
+
     return loads(page_data)
 
   def props(self):
     return self.page()['props']
-  
+
   def merge_props(self):
     return self.page()['mergeProps']
-  
+
   def deferred_props(self):
     return self.page()['deferredProps']
 
@@ -87,10 +90,10 @@ def inertia_page(url, component='TestComponent', props={}, template_data={}, def
 
   if deferred_props:
     _page['deferredProps'] = deferred_props
-  
+
   if merge_props:
     _page['mergeProps'] = merge_props
-    
+
   return _page
 
 def inertia_div(*args, **kwargs):

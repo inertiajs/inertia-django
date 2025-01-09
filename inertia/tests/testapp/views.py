@@ -1,15 +1,17 @@
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
-from inertia import inertia, render, lazy, merge, optional, defer, share, location
+
+from inertia import defer, inertia, lazy, location, merge, optional, render, share
 from inertia.http import INERTIA_SESSION_CLEAR_HISTORY, clear_history, encrypt_history
+
 
 class ShareMiddleware:
   def __init__(self, get_response):
     self.get_response = get_response
 
   def process_request(self, request):
-    share(request, 
+    share(request,
       position=lambda: 'goalie',
       number=29,
     )

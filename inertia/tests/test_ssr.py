@@ -1,8 +1,11 @@
 import json
-from inertia.test import InertiaTestCase, inertia_page, inertia_div
+from unittest.mock import Mock, patch
+
 from django.test import override_settings
-from unittest.mock import patch, Mock
 from requests.exceptions import RequestException
+
+from inertia.test import InertiaTestCase, inertia_div, inertia_page
+
 
 @override_settings(
   INERTIA_SSR_ENABLED=True,
@@ -20,9 +23,9 @@ class SSRTestCase(InertiaTestCase):
     }
 
     mock_request.post.return_value = mock_response
-    
+
     response = self.client.get('/props/')
-    
+
     mock_request.post.assert_called_once_with(
       'ssr-url/render',
       data=json.dumps(inertia_page('props', props={'name': 'Brandon', 'sport': 'Hockey'})),
@@ -31,7 +34,7 @@ class SSRTestCase(InertiaTestCase):
     self.assertTemplateUsed('inertia_ssr.html')
     self.assertContains(response, '<div>Body Works</div>')
     self.assertContains(response, 'head--<title>Head works</title>--head')
-  
+
   @patch('inertia.http.requests')
   def test_it_returns_ssr_calls_with_template_data(self, mock_request):
     mock_response = Mock()
@@ -41,7 +44,7 @@ class SSRTestCase(InertiaTestCase):
     }
 
     mock_request.post.return_value = mock_response
-    
+
     response = self.client.get('/template_data/')
 
     self.assertTemplateUsed('inertia_ssr.html')
