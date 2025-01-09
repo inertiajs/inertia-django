@@ -192,9 +192,9 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
             content = self.build_first_load(data)
 
         super().__init__(
+            *args,
             content=content,
             headers=_headers,
-            *args,
             **kwargs,
         )
 
