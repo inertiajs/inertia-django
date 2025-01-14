@@ -27,7 +27,20 @@ requests = "^2"
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
 pytest-django = "^4.5.2"
+ruff = "^0.8.6"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle
+    "W", # pycodestyle
+    "F", # Pyflakes
+    "B", # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I", # isort
+]
+ignore = ["E501"] # line too long, formatter will handle this
+unfixable = ["B", "SIM"]
