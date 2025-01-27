@@ -8,10 +8,11 @@ class User(models.Model):
     registered_at = models.DateTimeField()
     created_at = models.DateField(auto_now_add=True)
 
+
 class Sport(models.Model):
     name = models.CharField(max_length=255)
     season = models.CharField(max_length=255)
     created_at = models.DateField(auto_now_add=True)
 
     class InertiaMeta:
-        fields = ('id', 'name', 'created_at')
+        fields = ("id", "name", "created_at")

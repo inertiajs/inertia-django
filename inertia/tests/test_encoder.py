@@ -47,9 +47,8 @@ class InertiaJsonEncoderTestCase(TestCase):
                     "created_at": "2022-10-31T10:13:01",
                 }
             ),
-            self.encode(sport)
+            self.encode(sport),
         )
-
 
     def test_it_handles_querysets(self):
         User(

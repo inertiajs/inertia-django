@@ -14,7 +14,7 @@ def model_to_dict(model):
 
 class InertiaJsonEncoder(DjangoJSONEncoder):
     def default(self, value):
-        if hasattr(value.__class__, 'InertiaMeta'):
+        if hasattr(value.__class__, "InertiaMeta"):
             return {
                 field: getattr(value, field)
                 for field in value.__class__.InertiaMeta.fields
