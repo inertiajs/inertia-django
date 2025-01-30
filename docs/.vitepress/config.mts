@@ -51,10 +51,7 @@ export default defineConfig({
                 },
                 {
                     text: "The basics",
-                    items: [
-                        { text: "Pages", link: "/guide/pages" },
-                        { text: "Links", link: "/guide/links" },
-                    ],
+                    items: [{ text: "Links", link: "/guide/links" }],
                 },
             ],
         },
