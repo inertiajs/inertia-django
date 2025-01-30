@@ -49,6 +49,8 @@ export default defineConfig({
             },
         ],
 
+        logo: "/logo.svg",
+
         sidebar: {
             "/guide/": [
                 {
