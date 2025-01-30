@@ -34,6 +34,19 @@ export default defineConfig({
         nav: [
             { text: "Home", link: "/" },
             { text: "Guide", link: "/guide" },
+            {
+                text: "Links",
+                items: [
+                    {
+                        text: "Official Inertia.js docs",
+                        link: "https://inertiajs.com",
+                    },
+                    {
+                        text: "inertia-django on PyPI",
+                        link: "https://pypi.org/project/inertia-django",
+                    },
+                ],
+            },
         ],
 
         sidebar: {
