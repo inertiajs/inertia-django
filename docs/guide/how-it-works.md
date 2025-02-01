@@ -10,6 +10,6 @@ At its core, Inertia is essentially a client-side routing library. It allows you
 
 When Inertia makes an XHR visit, the server detects that it's an Inertia visit and, instead of returning a full HTML response, it returns a JSON response with the JavaScript page component name and data (props). Inertia then dynamically swaps out the previous page component with the new page component and updates the browser's history state.
 
-**The end result is a silky smooth single-page experience. 🎉**
+**The end result is a silky smooth single-page experience. :tada:**
 
 To learn more about the nitty-gritty, technical details of how Inertia works under the hood, check out [the protocol page](/guide/the-protocol.md).
