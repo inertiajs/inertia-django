@@ -57,6 +57,19 @@ export default defineConfig({
                     items: [{ text: "Introduction", link: "/guide" }],
                 },
                 {
+                    text: "Installation",
+                    items: [
+                        {
+                            text: "Server-side",
+                            link: "/guide/server-side-setup",
+                        },
+                        {
+                            text: "Client-side",
+                            link: "/guide/client-side-setup",
+                        },
+                    ],
+                },
+                {
                     text: "Core concepts",
                     items: [
                         { text: "Who is it for", link: "/guide/who-is-it-for" },
@@ -67,6 +80,19 @@ export default defineConfig({
                 {
                     text: "The basics",
                     items: [{ text: "Links", link: "/guide/links" }],
+                },
+                {
+                    text: "Advanced",
+                    items: [
+                        {
+                            text: "Scroll management",
+                            link: "/guide/scroll-management",
+                        },
+                        {
+                            text: "Code splitting",
+                            link: "/guide/code-splitting",
+                        },
+                    ],
                 },
             ],
         },
