@@ -14,7 +14,7 @@ hero:
           link: /guide
         - theme: alt
           text: Install
-          link: /install
+          link: /guide/server-side-setup
 
     image:
         src: /logo.svg
