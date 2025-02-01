@@ -1,14 +1,14 @@
 import { defineConfig } from "vitepress";
 
-const title = "Inertia.js Django";
+const title = "Inertia Django";
 const description = "Build single page apps, without building an API";
 const site = "https://inertiajs.com";
-const image = `${site}/og_image.png`; // TODO: update this
+const image = `${site}/og_image.png`;
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-    title: "Inertia.js Django",
-    description: "Build single page apps, without building an API",
+    title: title,
+    description: description,
 
     cleanUrls: true,
 
