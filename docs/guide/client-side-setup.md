@@ -1,6 +1,11 @@
 # Client-side setup
 
-Once you have your [server-side framework configured](/guide/server-side-setup.md), you then need to setup your client-side framework. Inertia currently provides support for React, Vue, and Svelte.
+::: tip
+If you used the [template based setup](/guide/server-side-setup.md#template-based-setup), you can skip client-side setup.
+It is already configured as part of the template based setup.
+:::
+
+Once you have [server-side configured](/guide/server-side-setup.md), you then need to setup your client-side framework. Inertia currently provides support for React, Vue, and Svelte.
 
 ## Install dependencies
 
@@ -9,78 +14,244 @@ First, install the Inertia client-side adapter corresponding to your framework o
 ::: code-group
 
 ```shell [Vue]
-npm install @inertiajs/vue3 vue
+npm install @inertiajs/vue3 vue @vitejs/plugin-vue
 ```
 
 ```shell [React]
-npm install @inertiajs/react react react-dom
+npm install @inertiajs/react react react-dom @vitejs/plugin-react
 ```
 
 ```shell [Svelte 4, Svelte 5]
-npm install @inertiajs/svelte svelte
+npm install @inertiajs/svelte svelte @sveltejs/vite-plugin-svelte
 ```
 
 :::
 
-## Initialize the Inertia app
+## Configure Vite
 
-Next, update your main JavaScript file to boot your Inertia app. To accomplish this, we'll initialize the client-side framework with the base Inertia component.
+Create a `vite.config.js` file in your root directory and configure it for use with your frontend of choice and  `django-vite`.
 
 ::: code-group
 
 ```js [Vue]
-// frontend/entrypoints/inertia.js
+// vite.config.js
+import { join, resolve } from "node:path";
+import vue from "@vitejs/plugin-vue";
+import { defineConfig, loadEnv } from "vite";
+
+
+export default defineConfig((mode) => {
+  const env = loadEnv(mode, process.cwd(), "");
+
+  const INPUT_DIR = "./frontend";
+  const OUTPUT_DIR = "./frontend/dist";
+
+  return {
+    plugins: [vue()],
+    resolve: {
+      alias: {
+        "@": resolve(INPUT_DIR),
+        vue: "vue/dist/vue.esm-bundler.js",
+      },
+    },
+    root: resolve(INPUT_DIR),
+    base: "/static/",
+    server: {
+      host: "0.0.0.0",
+      port: env.DJANGO_VITE_DEV_SERVER_PORT || 5173,
+      watch: {
+        usePolling: true,
+      },
+    },
+    build: {
+      manifest: "manifest.json",
+      emptyOutDir: true,
+      outDir: resolve(OUTPUT_DIR),
+      rollupOptions: {
+        input: {
+          main: join(INPUT_DIR, "/js/main.js"),
+          css: join(INPUT_DIR, "/css/main.css"),
+        },
+      },
+    },
+  };
+});
+
+```
+
+```js [React]
+// vite.config.js
+import { join, resolve } from "node:path";
+import react from '@vitejs/plugin-react';
+import { defineConfig, loadEnv } from "vite";
+
+
+export default defineConfig((mode) => {
+	const env = loadEnv(mode, process.cwd(), "");
+
+	const INPUT_DIR = "./frontend";
+	const OUTPUT_DIR = "./frontend/dist";
+
+	return {
+		plugins: [react()],
+		resolve: {
+			alias: {
+				"@": resolve(INPUT_DIR),
+			},
+		},
+		root: resolve(INPUT_DIR),
+		base: "/static/",
+		server: {
+			host: "0.0.0.0",
+			port: env.DJANGO_VITE_DEV_SERVER_PORT || 5173,
+			watch: {
+				usePolling: true,
+			},
+		},
+		build: {
+			manifest: "manifest.json",
+			emptyOutDir: true,
+			outDir: resolve(OUTPUT_DIR),
+			rollupOptions: {
+				input: {
+					main: join(INPUT_DIR, "/js/main.js"),
+					css: join(INPUT_DIR, "/css/main.css"),
+				},
+			},
+		},
+	};
+});
+```
+
+```js [Svelte]
+// vite.config.js
+import { join, resolve } from "node:path";
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { defineConfig, loadEnv } from "vite";
+
+
+export default defineConfig((mode) => {
+	const env = loadEnv(mode, process.cwd(), "");
+
+	const INPUT_DIR = "./frontend";
+	const OUTPUT_DIR = "./frontend/dist";
+
+	return {
+		plugins: [svelte()],
+		resolve: {
+			alias: {
+				"@": resolve(INPUT_DIR),
+			},
+		},
+		root: resolve(INPUT_DIR),
+		base: "/static/",
+		server: {
+			host: "0.0.0.0",
+			port: env.DJANGO_VITE_DEV_SERVER_PORT || 5173,
+			watch: {
+				usePolling: true,
+			},
+		},
+		build: {
+			manifest: "manifest.json",
+			emptyOutDir: true,
+			outDir: resolve(OUTPUT_DIR),
+			rollupOptions: {
+				input: {
+					main: join(INPUT_DIR, "/js/main.js"),
+					css: join(INPUT_DIR, "/css/main.css"),
+				},
+			},
+		},
+	};
+});
+```
+:::
+
+## Initialize the Inertia app
+
+Create a `frontend` directory in your root directory and add a `js` directory inside it.
+Inside the `js` directory, create a `main.js` file.
+
+Next, update your main JavaScript file (`main.js`) to boot your Inertia app.
+To accomplish this, we'll initialize the client-side framework with the base Inertia component.
+
+We will also configure CSRF to work properly with Django.
+
+::: code-group
+
+```js [Vue]
+// frontend/js/main.js
 import { createApp, h } from "vue";
 import { createInertiaApp } from "@inertiajs/vue3";
+import axios from "axios";
 
-createInertiaApp({
-    resolve: (name) => {
-        const pages = import.meta.glob("../pages/**/*.vue", { eager: true });
-        return pages[`../pages/${name}.vue`];
-    },
-    setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
-            .use(plugin)
-            .mount(el);
-    },
+document.addEventListener("DOMContentLoaded", () => {
+	axios.defaults.xsrfCookieName = "csrftoken";
+	axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+
+    createInertiaApp({
+        resolve: (name) => {
+            const pages = import.meta.glob("../pages/**/*.vue", { eager: true });
+            return pages[`../pages/${name}.vue`];
+        },
+        setup({ el, App, props, plugin }) {
+            createApp({ render: () => h(App, props) })
+                .use(plugin)
+                .mount(el);
+        },
+    });
 });
 ```
 
 ```js [React]
-// frontend/entrypoints/inertia.js
+// frontend/js/main.js
 import { createInertiaApp } from "@inertiajs/react";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 
-createInertiaApp({
-    resolve: (name) => {
-        const pages = import.meta.glob("../pages/**/*.jsx", { eager: true });
-        return pages[`../pages/${name}.jsx`];
-    },
-    setup({ el, App, props }) {
-        const root = createRoot(el);
-        root.render(createElement(App, props));
-    },
+import axios from "axios";
+
+document.addEventListener("DOMContentLoaded", () => {
+	axios.defaults.xsrfCookieName = "csrftoken";
+	axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+
+    createInertiaApp({
+        resolve: (name) => {
+            const pages = import.meta.glob("../pages/**/*.jsx", { eager: true });
+            return pages[`../pages/${name}.jsx`];
+        },
+        setup({ el, App, props }) {
+            const root = createRoot(el);
+            root.render(createElement(App, props));
+        },
+    });
 });
 ```
 
 ```js [Svelte 4]
-// frontend/entrypoints/inertia.js
+// frontend/js/main.js
 import { createInertiaApp } from "@inertiajs/svelte";
+import axios from "axios";
 
-createInertiaApp({
-    resolve: (name) => {
-        const pages = import.meta.glob("../pages/**/*.svelte", { eager: true });
-        return pages[`../pages/${name}.svelte`];
-    },
-    setup({ el, App, props }) {
-        new App({ target: el, props });
-    },
+document.addEventListener("DOMContentLoaded", () => {
+	axios.defaults.xsrfCookieName = "csrftoken";
+	axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+
+    createInertiaApp({
+        resolve: (name) => {
+            const pages = import.meta.glob("../pages/**/*.svelte", { eager: true });
+            return pages[`../pages/${name}.svelte`];
+        },
+        setup({ el, App, props }) {
+            new App({ target: el, props });
+        },
+    });
 });
 ```
 
 ```js [Svelte 5]
-// frontend/entrypoints/inertia.js
+// frontend/js/main.js
 import { createInertiaApp } from "@inertiajs/svelte";
 import { mount } from "svelte";
 
@@ -106,8 +277,7 @@ The `resolve` callback tells Inertia how to load a page component. It receives a
 ::: code-group
 
 ```js [Vue]
-// Vite
-// frontend/entrypoints/inertia.js
+// frontend/js/main.js
 createInertiaApp({
     resolve: (name) => {
         const pages = import.meta.glob("../pages/**/*.vue", { eager: true });
@@ -115,18 +285,10 @@ createInertiaApp({
     },
     // ...
 });
-
-// Webpacker/Shakapacker
-// javascript/packs/inertia.js
-createInertiaApp({
-    resolve: (name) => require(`../pages/${name}`),
-    // ...
-});
 ```
 
 ```js [React]
-// Vite
-// frontend/entrypoints/inertia.js
+// frontend/js/main.js
 createInertiaApp({
     resolve: (name) => {
         const pages = import.meta.glob("../pages/**/*.jsx", { eager: true });
@@ -134,30 +296,15 @@ createInertiaApp({
     },
     //...
 });
-
-// Webpacker/Shakapacker
-// javascript/packs/inertia.js
-createInertiaApp({
-    resolve: (name) => require(`../pages/${name}`),
-    //...
-});
 ```
 
 ```js [Svelte 4, Svelte 5]
-// Vite
-// frontend/entrypoints/inertia.js
+// frontend/js/main.js
 createInertiaApp({
     resolve: (name) => {
         const pages = import.meta.glob("../pages/**/*.svelte", { eager: true });
         return pages[`../pages/${name}.svelte`];
     },
-    //...
-});
-
-// Webpacker
-// javascript/packs/inertia.js
-createInertiaApp({
-    resolve: (name) => require(`../pages/${name}.svelte`),
     //...
 });
 ```
@@ -168,7 +315,10 @@ By default we recommend eager loading your components, which will result in a si
 
 ## Defining a root element
 
-By default, Inertia assumes that your application's root template has a root element with an `id` of `app`. If your application's root element has a different `id`, you can provide it using the `id` property.
+By default, Inertia assumes that your application's root template has a root element with an `id` of `app`.
+This is already configured if you use the `{% block inertia %} {% endblock %}` template tag from `inertia-django` in your base html template.
+
+If your application's root element has a different `id`, you can provide it using the `id` property.
 
 ```js
 createInertiaApp({
