@@ -68,6 +68,8 @@ You're all set! You can now start your development server.
 Skip this section if you used the [template based setup](#template-based-setup) method.
 :::
 
+### Install dependencies
+
 Install the `inertia-django` server-side adapter and related dependencies.
 
 ::: code-group
@@ -81,6 +83,8 @@ python -m pip install inertia-django django-vite
 ```
 :::
 
+### Update installed apps
+
 Add `django_vite` and `inertia` to your `INSTALLED_APPS` in `settings.py`.
 
 ```python
@@ -91,6 +95,8 @@ INSTALLED_APPS = [
 ]
 ```
 
+### Update middleware
+
 Next, add `inertia.middleware.InertiaMiddleware` to your `MIDDLEWARE` in `settings.py`.
 
 ```python
@@ -99,6 +105,8 @@ MIDDLEWARE = [
     "inertia.middleware.InertiaMiddleware",
 ]
 ```
+
+### Configure settings
 
 Configure `django-vite` and `inertia-django` specific settings in `settings.py`.
 
@@ -129,6 +137,8 @@ INERTIA_LAYOUT = "base.html" # update with your base template name
 ```
 
 > For a complete list of available `inertia-django` settings, see [readme](https://github.com/inertiajs/inertia-django?tab=readme-ov-file#settings).
+
+### Update base template
 
 In your base html template, add the following:
 
