@@ -131,6 +131,30 @@ def inertia_share(get_response):
     return get_response(request)
   return middleware
 ```
+### Prop Serialization
+
+Unlike Rails and Laravel, Django does not handle converting objects to JSON by default so Inertia Django offers two different ways to handle prop serialization.
+
+#### InertiaJsonEncoder
+
+The default behavior is via the InertiaJsonEncoder. The InertiaJsonEncoder is a barebones implementation
+that extends the DjangoJSONEncoder with the ability to handle QuerySets and models. Models are JSON encoded
+via Django's `model_to_dict` method excluding the field `password`. This method has limitations though, as
+`model_to_dict` does not include fields where editable=False (such as automatic timestamps).
+
+#### InertiaMeta
+
+Starting in Inertia Django v1.2, Inertia Django supports an InertiaMeta nested class. Similar to Django Rest Framework's serializers, any class (not just models) can contain an InertiaMeta class which can specify how that class should be serialized to JSON. At this time, in only supports `fields`, but this may be extended in future versions.
+
+```python
+class User(models.Model):
+  name = models.CharField(max_length=255)
+  password = models.CharField(max_length=255)
+  created_at = models.DateField(auto_now_add=True)
+
+  class InertiaMeta:
+    fields = ('name', 'created_at')
+```
 
 ### External Redirects
 

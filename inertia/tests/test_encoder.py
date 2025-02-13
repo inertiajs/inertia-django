@@ -3,7 +3,7 @@ from json import dumps
 
 from django.test import TestCase
 
-from inertia.tests.testapp.models import User
+from inertia.tests.testapp.models import Sport, User
 from inertia.utils import InertiaJsonEncoder
 
 
@@ -29,6 +29,25 @@ class InertiaJsonEncoderTestCase(TestCase):
                 }
             ),
             self.encode(user),
+        )
+
+    def test_it_handles_inertia_meta_fields(self):
+        sport = Sport(
+            id=3,
+            name="Hockey",
+            season="Winter",
+            created_at=datetime(2022, 10, 31, 10, 13, 1),
+        )
+
+        self.assertEqual(
+            dumps(
+                {
+                    "id": 3,
+                    "name": "Hockey",
+                    "created_at": "2022-10-31T10:13:01",
+                }
+            ),
+            self.encode(sport),
         )
 
     def test_it_handles_querysets(self):
