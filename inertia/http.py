@@ -3,6 +3,7 @@ from http import HTTPStatus
 from json import dumps as json_encode
 
 import requests
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 
@@ -127,10 +128,19 @@ class BaseInertiaResponseMixin:
     def build_first_load(self, data):
         context, template = self.build_first_load_context_and_template(data)
 
+        try:
+            layout = settings.INERTIA_LAYOUT
+            if not layout:
+                raise AttributeError("INERTIA_LAYOUT is set, but has a falsy value")
+        except AttributeError as ae:
+            raise ImproperlyConfigured(
+                "INERTIA_LAYOUT must be set in your Django settings"
+            ) from ae
+
         return render_to_string(
             template,
             {
-                "inertia_layout": settings.INERTIA_LAYOUT,
+                "inertia_layout": layout,
                 **context,
             },
             self.request,
