@@ -24,7 +24,10 @@ class InertiaJsonEncoder(DjangoJSONEncoder):
             return model_to_dict(value)
 
         if isinstance(value, QuerySet):
-            return [model_to_dict(model) for model in value]
+            return [
+                (model_to_dict(obj) if isinstance(value.model, models.Model) else obj)
+                for obj in value
+            ]
 
         return super().default(value)
 
