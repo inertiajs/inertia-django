@@ -2,7 +2,6 @@ import json
 from unittest.mock import Mock, patch
 
 from django.test import override_settings
-from requests.exceptions import RequestException
 
 from inertia.test import InertiaTestCase, inertia_div, inertia_page
 
@@ -66,7 +65,7 @@ class SSRTestCase(InertiaTestCase):
     @patch("inertia.http.requests")
     def test_it_fallsback_on_failure(self, mock_requests):
         def uh_oh(*args, **kwargs):
-            raise RequestException()
+            raise ValueError()  # all exceptions are caught and ignored
 
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = uh_oh
