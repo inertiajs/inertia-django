@@ -160,7 +160,7 @@ class BaseInertiaResponseMixin:
 
 
 class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
-    json_encoder = settings.INERTIA_JSON_ENCODER
+    json_encoder = None
 
     def __init__(
         self,
@@ -178,7 +178,10 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
         self.template_data = template_data or {}
         _headers = headers or {}
 
-        data = json_encode(self.page_data(), cls=self.json_encoder)
+        data = json_encode(
+            self.page_data(),
+            cls=self.json_encoder or settings.INERTIA_JSON_ENCODER,
+        )
 
         if self.request.is_inertia():
             _headers = {
