@@ -1,3 +1,5 @@
+from django.core.exceptions import ImproperlyConfigured
+from django.test import override_settings
 from pytest import warns
 
 from inertia.test import InertiaTestCase, inertia_div, inertia_page
@@ -245,3 +247,12 @@ class MergePropsTestCase(InertiaTestCase):
                 },
             ),
         )
+
+
+class MisconfiguredLayoutTestCase(InertiaTestCase):
+    def test_with_props(self):
+        with override_settings(INERTIA_LAYOUT=None), self.assertRaisesMessage(
+            ImproperlyConfigured,
+            "INERTIA_LAYOUT must be set",
+        ):
+            self.client.get("/props/")
