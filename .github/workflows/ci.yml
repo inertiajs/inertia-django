@@ -19,7 +19,9 @@ jobs:
         with:
           python-version: '3.12'
       - run: uvx poetry install
-      - run: uvx poetry run pytest
+      - run: uvx poetry run pytest -v -ra --cov --cov-report=term-missing
+        env:
+          COVERAGE_CORE: sysmon
   build:
     runs-on: ubuntu-latest
     steps:
