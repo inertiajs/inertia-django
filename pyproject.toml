@@ -44,3 +44,7 @@ select = [
 ]
 ignore = ["E501"] # line too long, formatter will handle this
 unfixable = ["B", "SIM"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "inertia.tests.settings"
+django_find_project = false
