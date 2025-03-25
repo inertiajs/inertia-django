@@ -71,7 +71,6 @@ class InertiaJsonEncoderTestCase(TestCase):
             self.encode(User.objects.all()),
         )
 
-
     def test_it_handles_non_model_querysets(self):
         user = make_brandon()
         user.save()
