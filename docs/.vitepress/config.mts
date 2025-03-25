@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 const title = "Inertia Django";
 const description = "Build single page apps, without building an API";
-const site = "https://inertiajs.com";
+const site = "https://inertia-django.dev";
 const image = `${site}/og_image.png`;
 
 // https://vitepress.dev/reference/site-config
