@@ -1,3 +1,4 @@
+import process from "node:process";
 import { defineConfig } from "vitepress";
 
 const title = "Inertia Django";
@@ -7,6 +8,7 @@ const image = `${site}/og_image.png`;
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+    base: process.env.BASE_PATH,
     title: title,
     description: description,
 
