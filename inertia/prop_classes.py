@@ -19,6 +19,10 @@ class IgnoreOnFirstLoadProp:
     pass
 
 
+class AlwaysProp(CallableProp):
+    pass
+
+
 class OptionalProp(CallableProp, IgnoreOnFirstLoadProp):
     pass
 

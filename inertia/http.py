@@ -92,14 +92,20 @@ class BaseInertiaResponseMixin:
             **(self.request.inertia),
             **self.props,
         }
+        delete_queue = []
 
-        for key in list(_props.keys()):
+        for key, value in _props.items():
+            if isinstance(value, AlwaysProp):
+                continue
+
             if self.request.is_a_partial_render(self.component):
                 if key not in self.request.partial_keys():
-                    del _props[key]
+                    delete_queue.append(key)
             else:
                 if isinstance(_props[key], IgnoreOnFirstLoadProp):
-                    del _props[key]
+                    delete_queue.append(key)
+
+        _props = {key: val for key, val in _props.items() if key not in delete_queue}
 
         return deep_transform_callables(_props)
 
