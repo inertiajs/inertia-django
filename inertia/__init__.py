@@ -12,5 +12,5 @@ __all__ = [
     "lazy",
     "merge",
     "optional",
-    "always"
+    "always",
 ]
