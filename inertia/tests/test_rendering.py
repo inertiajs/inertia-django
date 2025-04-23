@@ -259,3 +259,21 @@ class MisconfiguredLayoutTestCase(InertiaTestCase):
             ),
         ):
             self.client.get("/props/")
+
+
+class AlwaysPropsTestCase(InertiaTestCase):
+    def test_always_props_are_included_by_default(self):
+        self.assertJSONResponse(
+            self.inertia.get("/always/"),
+            inertia_page("always", props={"name": "Brian", "sport": "Basketball"}),
+        )
+
+    def test_always_props_are_included_when_not_requested(self):
+        self.assertJSONResponse(
+            self.inertia.get(
+                "/always/",
+                HTTP_X_INERTIA_PARTIAL_DATA="grit",
+                HTTP_X_INERTIA_PARTIAL_COMPONENT="TestComponent",
+            ),
+            inertia_page("always", props={"sport": "Basketball", "grit": "intense"}),
+        )

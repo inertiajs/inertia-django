@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 
 from .helpers import deep_transform_callables, validate_type
-from .prop_classes import DeferredProp, IgnoreOnFirstLoadProp, MergeableProp
+from .prop_classes import DeferredProp, IgnoreOnFirstLoadProp, MergeableProp, AlwaysProp
 from .settings import settings
 
 INERTIA_REQUEST_ENCRYPT_HISTORY = "_inertia_encrypt_history"
@@ -92,7 +92,7 @@ class BaseInertiaResponseMixin:
             **(self.request.inertia),
             **self.props,
         }
-        delete_queue = []
+        delete_queue = set()
 
         for key, value in _props.items():
             if isinstance(value, AlwaysProp):
@@ -100,10 +100,10 @@ class BaseInertiaResponseMixin:
 
             if self.request.is_a_partial_render(self.component):
                 if key not in self.request.partial_keys():
-                    delete_queue.append(key)
+                    delete_queue.add(key)
             else:
                 if isinstance(_props[key], IgnoreOnFirstLoadProp):
-                    delete_queue.append(key)
+                    delete_queue.add(key)
 
         _props = {key: val for key, val in _props.items() if key not in delete_queue}
 

@@ -2,7 +2,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
 
-from inertia import defer, inertia, lazy, location, merge, optional, render, share
+from inertia import defer, inertia, lazy, location, merge, optional, render, share, always
 from inertia.http import INERTIA_SESSION_CLEAR_HISTORY, clear_history, encrypt_history
 
 
@@ -152,3 +152,12 @@ def clear_history_redirect_test(request):
 def clear_history_type_error_test(request):
     request.session[INERTIA_SESSION_CLEAR_HISTORY] = "foo"
     return {}
+
+
+@inertia("TestComponent")
+def always_test(request):
+    return {
+        "name": "Brian",
+        "sport": always(lambda: "Basketball"),
+        "grit": optional(lambda: "intense"),
+    }

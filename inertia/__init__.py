@@ -1,6 +1,6 @@
 from .http import InertiaResponse, inertia, location, render
 from .share import share
-from .utils import defer, lazy, merge, optional
+from .utils import defer, lazy, merge, optional, always
 
 __all__ = [
     "InertiaResponse",
@@ -12,4 +12,5 @@ __all__ = [
     "lazy",
     "merge",
     "optional",
+    "always"
 ]
