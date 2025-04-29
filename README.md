@@ -297,11 +297,14 @@ class LogoutView(auth_views.LogoutView):
         return response
 ```
 
-### SSR 
+### SSR
 
 #### Backend
 
-Enable SSR via the `INERTIA_SSR_URL` and `INERTIA_SSR_ENABLED` settings
+* Ensure `requests` is installed, so inertia-django can do SSR requests.
+  * `requests` is configured as a dependency if you install the `[ssr]` extra,
+    e.g. `inertia-django[ssr]` in your requirements.
+* Enable SSR via the `INERTIA_SSR_URL` and `INERTIA_SSR_ENABLED` settings.
 
 #### Frontend
 
