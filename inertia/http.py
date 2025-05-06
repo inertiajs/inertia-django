@@ -244,7 +244,7 @@ def inertia(component):
             if not isinstance(props, dict):
                 return props
 
-            return render(request, component, props)
+            return InertiaResponse(request, component, props)
 
         return inner
 
