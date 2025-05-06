@@ -237,7 +237,7 @@ def clear_history(request):
 def inertia(component):
     def decorator(func):
         @wraps(func)
-        def inner(request, *args, **kwargs):
+        def process_inertia_response(request, *args, **kwargs):
             props = func(request, *args, **kwargs)
 
             # if a response is returned, return it
@@ -246,6 +246,6 @@ def inertia(component):
 
             return InertiaResponse(request, component, props)
 
-        return inner
+        return process_inertia_response
 
     return decorator
