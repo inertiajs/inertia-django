@@ -237,15 +237,15 @@ def clear_history(request):
 def inertia(component):
     def decorator(func):
         @wraps(func)
-        def inner(request, *args, **kwargs):
+        def process_inertia_response(request, *args, **kwargs):
             props = func(request, *args, **kwargs)
 
-            # if something other than a dict is returned, the user probably wants to return a specific response
-            if not isinstance(props, dict):
+            # if a response is returned, return it
+            if isinstance(props, HttpResponse):
                 return props
 
-            return render(request, component, props)
+            return InertiaResponse(request, component, props)
 
-        return inner
+        return process_inertia_response
 
     return decorator
