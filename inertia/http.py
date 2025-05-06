@@ -240,8 +240,8 @@ def inertia(component):
         def inner(request, *args, **kwargs):
             props = func(request, *args, **kwargs)
 
-            # if something other than a dict is returned, the user probably wants to return a specific response
-            if not isinstance(props, dict):
+            # if a response is returned, return it
+            if isinstance(props, HttpResponse):
                 return props
 
             return InertiaResponse(request, component, props)
