@@ -186,7 +186,7 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
         self.component = component
         self.props = props or {}
         self.template_data = template_data or {}
-        _headers = headers or {}
+        self.headers = headers or {}
 
         data = json_encode(
             self.page_data(),
@@ -194,8 +194,8 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
         )
 
         if self.request.is_inertia():
-            _headers = {
-                **_headers,
+            self.headers = {
+                **self.headers,
                 "Vary": "X-Inertia",
                 "X-Inertia": "true",
                 "Content-Type": "application/json",
@@ -207,7 +207,7 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
         super().__init__(
             *args,
             content=content,
-            headers=_headers,
+            headers=self.headers,
             **kwargs,
         )
 
