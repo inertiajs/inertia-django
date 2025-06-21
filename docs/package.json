@@ -1,6 +1,7 @@
 {
     "devDependencies": {
-        "vitepress": "^1.6.3"
+        "vitepress": "^1.6.3",
+        "gray-matter": "^4.0.3"
     },
     "scripts": {
         "docs:dev": "vitepress dev",
