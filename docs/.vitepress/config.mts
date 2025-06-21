@@ -1,5 +1,10 @@
 import process from "node:process";
+import { execSync } from "node:child_process";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitepress";
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 const title = "Inertia Django";
 const description = "Build single page apps, without building an API";
@@ -31,6 +36,22 @@ export default defineConfig({
         ["meta", { property: "og:description", content: description }],
     ],
 
+    vite: {
+        plugins: [
+            {
+                name: 'generate-llm-docs',
+                buildStart() {
+                    // Regenerate LLM docs before build
+                    console.log('Regenerating LLM documentation...')
+                    execSync('node scripts/extract-docs.js', {
+                        cwd: join(__dirname, '..'),
+                    })
+                    console.log('LLM documentation updated!')
+                },
+            },
+        ],
+    },
+
     themeConfig: {
         // https://vitepress.dev/reference/default-theme-config
         nav: [
@@ -49,6 +70,7 @@ export default defineConfig({
                     },
                 ],
             },
+            { text: "LLMs", link: "/llms-full.txt" },
         ],
 
         logo: "/logo.svg",
