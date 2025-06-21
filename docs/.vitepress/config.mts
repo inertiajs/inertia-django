@@ -70,7 +70,7 @@ export default defineConfig({
                     },
                 ],
             },
-            { text: "LLMs", link: "/llms-full.txt" },
+            { text: "LLMs", link: "./llms-full.txt" },
         ],
 
         logo: "/logo.svg",
