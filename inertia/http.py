@@ -3,7 +3,7 @@ from http import HTTPStatus
 from json import dumps as json_encode
 
 from django.core.exceptions import ImproperlyConfigured
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
 
 from .helpers import deep_transform_callables, validate_type
@@ -25,7 +25,7 @@ INERTIA_TEMPLATE = "inertia.html"
 INERTIA_SSR_TEMPLATE = "inertia_ssr.html"
 
 
-class InertiaRequest:
+class InertiaRequest(HttpRequest):
     def __init__(self, request):
         self.request = request
 
