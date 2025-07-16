@@ -50,5 +50,9 @@ class InertiaMiddleware:
         return request.method == "GET" and self.is_stale(request)
 
     def force_refresh(self, request):
-        messages.get_messages(request).used = False
+        # If the storage middleware is not defined, get_messages returns an empty list
+        storage = messages.get_messages(request)
+        if not isinstance(storage, list):
+            storage.used = False
+
         return location(request.build_absolute_uri())

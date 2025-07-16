@@ -11,7 +11,7 @@ class CallableProp:
 
 class MergeableProp(ABC):
     @abstractmethod
-    def should_merge(self):
+    def should_merge(self) -> bool:
         pass
 
 

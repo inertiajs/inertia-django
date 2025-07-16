@@ -13,23 +13,22 @@ def model_to_dict(model):
 
 
 class InertiaJsonEncoder(DjangoJSONEncoder):
-    def default(self, value):
-        if hasattr(value.__class__, "InertiaMeta"):
+    def default(self, o):
+        if hasattr(o.__class__, "InertiaMeta"):
             return {
-                field: getattr(value, field)
-                for field in value.__class__.InertiaMeta.fields
+                field: getattr(o, field) for field in o.__class__.InertiaMeta.fields
             }
 
-        if isinstance(value, models.Model):
-            return model_to_dict(value)
+        if isinstance(o, models.Model):
+            return model_to_dict(o)
 
-        if isinstance(value, QuerySet):
+        if isinstance(o, QuerySet):
             return [
-                (model_to_dict(obj) if isinstance(value.model, models.Model) else obj)
-                for obj in value
+                (model_to_dict(obj) if isinstance(o.model, models.Model) else obj)
+                for obj in o
             ]
 
-        return super().default(value)
+        return super().default(o)
 
 
 def lazy(prop):

@@ -132,7 +132,7 @@ def encrypt_history_false_test(request):
 
 @inertia("TestComponent")
 def encrypt_history_type_error_test(request):
-    encrypt_history(request, "foo")
+    encrypt_history(request, "foo")  # pyright: ignore[reportArgumentType]
     return {}
 
 
