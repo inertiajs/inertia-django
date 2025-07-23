@@ -8,7 +8,7 @@ version = "1.2.0"
 description = "Django adapter for the InertiaJS framework"
 authors = [{name="Brandon Shar", email="brandon@bellawatt.com"}]
 license = "MIT"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.md"
 repository = "https://github.com/inertiajs/inertia-django"
 homepage = "https://github.com/inertiajs/inertia-django"
