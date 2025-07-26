@@ -31,10 +31,6 @@ class InertiaRequest(HttpRequest):
         self.__dict__.update(request.__dict__)
 
     @property
-    def headers(self):
-        return super().headers
-
-    @property
     def inertia(self):
         inertia_attr = self.__dict__.get("inertia")
         return (
