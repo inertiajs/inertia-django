@@ -2,7 +2,6 @@ from functools import wraps
 from http import HTTPStatus
 from json import dumps as json_encode
 
-import requests
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -10,6 +9,14 @@ from django.template.loader import render_to_string
 from .helpers import deep_transform_callables, validate_type
 from .prop_classes import DeferredProp, IgnoreOnFirstLoadProp, MergeableProp
 from .settings import settings
+
+try:
+    # Must be early-imported so tests can patch it with
+    # a mock module
+    import requests
+except ImportError:
+    requests = None
+
 
 INERTIA_REQUEST_ENCRYPT_HISTORY = "_inertia_encrypt_history"
 INERTIA_SESSION_CLEAR_HISTORY = "_inertia_clear_history"
