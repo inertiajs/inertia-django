@@ -3,7 +3,7 @@ from http import HTTPStatus
 from json import dumps as json_encode
 
 from django.core.exceptions import ImproperlyConfigured
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
 
 from .helpers import deep_transform_callables, validate_type
@@ -25,20 +25,17 @@ INERTIA_TEMPLATE = "inertia.html"
 INERTIA_SSR_TEMPLATE = "inertia_ssr.html"
 
 
-class InertiaRequest:
+class InertiaRequest(HttpRequest):
     def __init__(self, request):
-        self.request = request
-
-    def __getattr__(self, name):
-        return getattr(self.request, name)
-
-    @property
-    def headers(self):
-        return self.request.headers
+        super().__init__()
+        self.__dict__.update(request.__dict__)
 
     @property
     def inertia(self):
-        return self.request.inertia.all() if hasattr(self.request, "inertia") else {}
+        inertia_attr = self.__dict__.get("inertia")
+        return (
+            inertia_attr.all() if inertia_attr and hasattr(inertia_attr, "all") else {}
+        )
 
     def is_a_partial_render(self, component):
         return (
@@ -58,7 +55,7 @@ class InertiaRequest:
     def should_encrypt_history(self):
         return validate_type(
             getattr(
-                self.request,
+                self,
                 INERTIA_REQUEST_ENCRYPT_HISTORY,
                 settings.INERTIA_ENCRYPT_HISTORY,
             ),
