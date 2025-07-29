@@ -9,7 +9,7 @@ from inertia.settings import settings
 
 
 class ClientWithLastResponse:
-    def __init__(self, client: Client):
+    def __init__(self, client):
         self.client = client
         self.last_response = None
 
@@ -29,6 +29,10 @@ class BaseInertiaTestCase:
     def last_response(self):
         return self.inertia.last_response or self.client.last_response
 
+    def assertJSONResponse(self, response, json_obj):
+        self.assertEqual(response.headers["Content-Type"], "application/json")
+        self.assertEqual(response.json(), json_obj)
+
 
 class InertiaTestCase(BaseInertiaTestCase, TestCase):
     def setUp(self):
@@ -43,12 +47,11 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
         self.mock_inertia.stop()
 
     def page(self):
-        if self.mock_render.call_args:
-            page_data = self.mock_render.call_args[0][1]["page"]
-        elif response := self.last_response():
-            page_data = response.content
-        else:
-            page_data = ""
+        page_data = (
+            self.mock_render.call_args[0][1]["page"]
+            if self.mock_render.call_args
+            else self.last_response().content
+        )
 
         return loads(page_data)
 
@@ -71,10 +74,6 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
 
     def component(self):
         return self.page()["component"]
-
-    def assertJSONResponse(self, response, json_obj):
-        self.assertEqual(response.headers["Content-Type"], "application/json")
-        self.assertEqual(response.json(), json_obj)
 
     def assertIncludesProps(self, props):
         self.assertDictEqual(self.props(), {**self.props(), **props})

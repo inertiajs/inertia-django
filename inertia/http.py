@@ -1,7 +1,6 @@
 from functools import wraps
 from http import HTTPStatus
 from json import dumps as json_encode
-from typing import Any, Callable
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
@@ -66,11 +65,6 @@ class InertiaRequest(HttpRequest):
 
 
 class BaseInertiaResponseMixin:
-    request: InertiaRequest
-    component: str
-    props: dict[str, Any]
-    template_data: dict[str, Any]
-
     def page_data(self):
         clear_history = validate_type(
             self.request.session.pop(INERTIA_SESSION_CLEAR_HISTORY, False),
@@ -153,7 +147,7 @@ class BaseInertiaResponseMixin:
                 "inertia_layout": layout,
                 **context,
             },
-            self.request.request,
+            self.request,
             using=None,
         )
 
@@ -244,8 +238,8 @@ def clear_history(request):
     request.session[INERTIA_SESSION_CLEAR_HISTORY] = True
 
 
-def inertia(component: str):
-    def decorator(func: Callable[..., HttpResponse | InertiaResponse | dict[str, Any]]):
+def inertia(component):
+    def decorator(func):
         @wraps(func)
         def process_inertia_response(request, *args, **kwargs):
             props = func(request, *args, **kwargs)
