@@ -14,7 +14,7 @@ urlpatterns = [
     path("defer-group/", views.defer_group_test),
     path("merge/", views.merge_test),
     path("complex-props/", views.complex_props_test),
-    path("share/", views.share_test),
+    path("share/", views.share_test),  # type: ignore[arg-type]
     path("inertia-redirect/", views.inertia_redirect_test),
     path("external-redirect/", views.external_redirect_test),
     path("encrypt-history/", views.encrypt_history_test),
