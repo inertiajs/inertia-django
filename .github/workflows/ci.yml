@@ -41,3 +41,12 @@ jobs:
       - uses: astral-sh/ruff-action@v3
       - run: ruff check
       - run: ruff format --check
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv
+        with:
+          python-version: '3.12'
+      - run: uvx poetry install --extras=ssr
+      - run: uvx poetry run mypy .
