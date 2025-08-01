@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict as base_model_to_dict
 
-from .prop_classes import DeferredProp, MergeProp, OptionalProp
+from .prop_classes import DeferredProp, MergeProp, OptionalProp, AlwaysProp
 
 
 def model_to_dict(model):
@@ -39,6 +39,10 @@ def lazy(prop):
         stacklevel=2,
     )
     return optional(prop)
+
+
+def always(prop):
+    return AlwaysProp(prop)
 
 
 def optional(prop):
