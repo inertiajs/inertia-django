@@ -233,8 +233,8 @@ from inertia import merge, inertia
 @inertia('ExampleComponent')
 def example(request):
   return {
-    'name': lambda: 'Brandon', 
-    'data': merge(Paginator(objects, 3)), 
+    'name': lambda: 'Brandon',
+    'data': merge(Paginator(objects, 3)),
   }
 ```
 
@@ -246,8 +246,8 @@ from inertia import defer, inertia
 @inertia('ExampleComponent')
 def example(request):
   return {
-    'name': lambda: 'Brandon', 
-    'data': defer(lambda: Paginator(objects, 3), merge=True), 
+    'name': lambda: 'Brandon',
+    'data': defer(lambda: Paginator(objects, 3), merge=True),
   }
 ```
 
@@ -364,6 +364,7 @@ for you to simulate an inertia response. You can access and use it just like the
 ## Examples
 
 - [Django Svelte Template](https://github.com/pmdevita/Django-Svelte-Template) - A Django template and example project demonstrating Inertia with Svelte and SSR.
+- [Django React](https://github.com/willianantunes/inertia-django-playground): A Django + React project including CRUD operations, form handling, authentication, deployment using Docker, and more.
 
 ## Thank you
 
