@@ -1,4 +1,7 @@
+from typing import Callable
+
 from django.contrib import messages
+from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
 
 from .http import location
@@ -6,10 +9,10 @@ from .settings import settings
 
 
 class InertiaMiddleware:
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         response = self.get_response(request)
 
         # Inertia requests don't ever render templates, so they skip the typical Django
@@ -27,28 +30,33 @@ class InertiaMiddleware:
 
         return response
 
-    def is_non_post_redirect(self, request, response):
+    def is_non_post_redirect(
+        self, request: HttpRequest, response: HttpResponse
+    ) -> bool:
         return self.is_redirect_request(response) and request.method in [
             "PUT",
             "PATCH",
             "DELETE",
         ]
 
-    def is_inertia_request(self, request):
+    def is_inertia_request(self, request: HttpRequest) -> bool:
         return "X-Inertia" in request.headers
 
-    def is_redirect_request(self, response):
+    def is_redirect_request(self, response: HttpResponse) -> bool:
         return response.status_code in [301, 302]
 
-    def is_stale(self, request):
+    def is_stale(self, request: HttpRequest) -> bool:
         return (
             request.headers.get("X-Inertia-Version", settings.INERTIA_VERSION)
             != settings.INERTIA_VERSION
         )
 
-    def is_stale_inertia_get(self, request):
+    def is_stale_inertia_get(self, request: HttpRequest) -> bool:
         return request.method == "GET" and self.is_stale(request)
 
-    def force_refresh(self, request):
-        messages.get_messages(request).used = False
+    def force_refresh(self, request: HttpRequest) -> HttpResponse:
+        # If the storage middleware is not defined, get_messages returns an empty list
+        storage = messages.get_messages(request)
+        if not isinstance(storage, list):
+            storage.used = False
         return location(request.build_absolute_uri())
