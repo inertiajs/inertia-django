@@ -2,6 +2,8 @@
 
 # Inertia.js Django Adapter
 
+[Official Docs and installation instructions are available here](https://inertiajs.github.io/inertia-django/)
+
 ## Installation
 
 ### Backend
@@ -369,7 +371,3 @@ for you to simulate an inertia response. You can access and use it just like the
 ## Thank you
 
 A huge thank you to the community members who have worked on InertiaJS for Django before us. Parts of this repo were particularly inspired by [Andres Vargas](https://github.com/zodman) and [Samuel Girardin](https://github.com/girardinsamuel). Additional thanks to Andres for the Pypi project.
-
-_Maintained and sponsored by the team at [bellaWatt](https://bellawatt.com/)_
-
-[![bellaWatt Logo](https://user-images.githubusercontent.com/6599653/114456832-5607d980-9bab-11eb-99c8-ab39867c384e.png)](https://bellawatt.com/)
