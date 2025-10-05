@@ -1,12 +1,13 @@
 from functools import wraps
 from http import HTTPStatus
 from json import dumps as json_encode
+from typing import Any, Callable
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
 
-from .helpers import deep_transform_callables, validate_type
+from .helpers import deep_transform_callables
 from .prop_classes import DeferredProp, IgnoreOnFirstLoadProp, MergeableProp
 from .settings import settings
 
@@ -15,7 +16,7 @@ try:
     # a mock module
     import requests
 except ImportError:
-    requests = None
+    requests = None  # type: ignore[assignment]
 
 
 INERTIA_REQUEST_ENCRYPT_HISTORY = "_inertia_encrypt_history"
@@ -26,51 +27,55 @@ INERTIA_SSR_TEMPLATE = "inertia_ssr.html"
 
 
 class InertiaRequest(HttpRequest):
-    def __init__(self, request):
+    def __init__(self, request: HttpRequest):
         super().__init__()
         self.__dict__.update(request.__dict__)
 
     @property
-    def inertia(self):
+    def inertia(self) -> dict[str, Any]:
         inertia_attr = self.__dict__.get("inertia")
         return (
             inertia_attr.all() if inertia_attr and hasattr(inertia_attr, "all") else {}
         )
 
-    def is_a_partial_render(self, component):
+    def is_a_partial_render(self, component: str) -> bool:
         return (
             "X-Inertia-Partial-Data" in self.headers
             and self.headers.get("X-Inertia-Partial-Component", "") == component
         )
 
-    def partial_keys(self):
+    def partial_keys(self) -> list[str]:
         return self.headers.get("X-Inertia-Partial-Data", "").split(",")
 
-    def reset_keys(self):
+    def reset_keys(self) -> list[str]:
         return self.headers.get("X-Inertia-Reset", "").split(",")
 
-    def is_inertia(self):
+    def is_inertia(self) -> bool:
         return "X-Inertia" in self.headers
 
-    def should_encrypt_history(self):
-        return validate_type(
-            getattr(
-                self,
-                INERTIA_REQUEST_ENCRYPT_HISTORY,
-                settings.INERTIA_ENCRYPT_HISTORY,
-            ),
-            expected_type=bool,
-            name="encrypt_history",
+    def should_encrypt_history(self) -> bool:
+        should_encrypt = getattr(
+            self, INERTIA_REQUEST_ENCRYPT_HISTORY, settings.INERTIA_ENCRYPT_HISTORY
         )
+        if not isinstance(should_encrypt, bool):
+            raise TypeError(
+                f"Expected bool for encrypt_history, got {type(should_encrypt).__name__}"
+            )
+        return should_encrypt
 
 
 class BaseInertiaResponseMixin:
-    def page_data(self):
-        clear_history = validate_type(
-            self.request.session.pop(INERTIA_SESSION_CLEAR_HISTORY, False),
-            expected_type=bool,
-            name="clear_history",
-        )
+    request: InertiaRequest
+    component: str
+    props: dict[str, Any]
+    template_data: dict[str, Any]
+
+    def page_data(self) -> dict[str, Any]:
+        clear_history = self.request.session.pop(INERTIA_SESSION_CLEAR_HISTORY, False)
+        if not isinstance(clear_history, bool):
+            raise TypeError(
+                f"Expected bool for clear_history, got {type(clear_history).__name__}"
+            )
 
         _page = {
             "component": self.component,
@@ -91,7 +96,7 @@ class BaseInertiaResponseMixin:
 
         return _page
 
-    def build_props(self):
+    def build_props(self) -> Any:
         _props = {
             **(self.request.inertia),
             **self.props,
@@ -107,18 +112,18 @@ class BaseInertiaResponseMixin:
 
         return deep_transform_callables(_props)
 
-    def build_deferred_props(self):
+    def build_deferred_props(self) -> dict[str, Any] | None:
         if self.request.is_a_partial_render(self.component):
             return None
 
-        _deferred_props = {}
+        _deferred_props: dict[str, Any] = {}
         for key, prop in self.props.items():
             if isinstance(prop, DeferredProp):
                 _deferred_props.setdefault(prop.group, []).append(key)
 
         return _deferred_props
 
-    def build_merge_props(self):
+    def build_merge_props(self) -> list[str]:
         return [
             key
             for key, prop in self.props.items()
@@ -129,7 +134,7 @@ class BaseInertiaResponseMixin:
             )
         ]
 
-    def build_first_load(self, data):
+    def build_first_load(self, data: Any) -> str:
         context, template = self.build_first_load_context_and_template(data)
 
         try:
@@ -151,7 +156,9 @@ class BaseInertiaResponseMixin:
             using=None,
         )
 
-    def build_first_load_context_and_template(self, data):
+    def build_first_load_context_and_template(
+        self, data: Any
+    ) -> tuple[dict[str, Any], str]:
         if settings.INERTIA_SSR_ENABLED:
             try:
                 response = requests.post(
@@ -178,14 +185,14 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
 
     def __init__(
         self,
-        request,
-        component,
-        props=None,
-        template_data=None,
-        headers=None,
-        *args,
-        **kwargs,
-    ):
+        request: HttpRequest,
+        component: str,
+        props: dict[str, Any] | None = None,
+        template_data: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         self.request = InertiaRequest(request)
         self.component = component
         self.props = props or {}
@@ -208,19 +215,30 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
         else:
             content = self.build_first_load(data)
 
-        super().__init__(
-            *args,
-            content=content,
-            headers=_headers,
-            **kwargs,
-        )
+        if args:
+            super().__init__(
+                *args,
+                headers=_headers,
+                **kwargs,
+            )
+        else:
+            super().__init__(
+                content=content,
+                headers=_headers,
+                **kwargs,
+            )
 
 
-def render(request, component, props=None, template_data=None):
+def render(
+    request: HttpRequest,
+    component: str,
+    props: dict[str, Any] | None = None,
+    template_data: dict[str, Any] | None = None,
+) -> InertiaResponse:
     return InertiaResponse(request, component, props or {}, template_data or {})
 
 
-def location(location):
+def location(location: str) -> HttpResponse:
     return HttpResponse(
         "",
         status=HTTPStatus.CONFLICT,
@@ -230,18 +248,27 @@ def location(location):
     )
 
 
-def encrypt_history(request, value=True):
+def encrypt_history(request: HttpRequest, value: bool = True) -> None:
     setattr(request, INERTIA_REQUEST_ENCRYPT_HISTORY, value)
 
 
-def clear_history(request):
+def clear_history(request: HttpRequest) -> None:
     request.session[INERTIA_SESSION_CLEAR_HISTORY] = True
 
 
-def inertia(component):
-    def decorator(func):
+def inertia(
+    component: str,
+) -> Callable[
+    [Callable[..., HttpResponse | InertiaResponse | dict[str, Any]]],
+    Callable[..., HttpResponse],
+]:
+    def decorator(
+        func: Callable[..., HttpResponse | InertiaResponse | dict[str, Any]],
+    ) -> Callable[..., HttpResponse]:
         @wraps(func)
-        def process_inertia_response(request, *args, **kwargs):
+        def process_inertia_response(
+            request: HttpRequest, *args: Any, **kwargs: Any
+        ) -> HttpResponse:
             props = func(request, *args, **kwargs)
 
             # if a response is returned, return it

@@ -1,4 +1,5 @@
 import warnings
+from typing import Any
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
@@ -8,31 +9,30 @@ from django.forms.models import model_to_dict as base_model_to_dict
 from .prop_classes import DeferredProp, MergeProp, OptionalProp
 
 
-def model_to_dict(model):
+def model_to_dict(model: models.Model) -> dict[str, Any]:
     return base_model_to_dict(model, exclude=("password",))
 
 
 class InertiaJsonEncoder(DjangoJSONEncoder):
-    def default(self, value):
-        if hasattr(value.__class__, "InertiaMeta"):
+    def default(self, o: Any) -> Any:
+        if hasattr(o.__class__, "InertiaMeta"):
             return {
-                field: getattr(value, field)
-                for field in value.__class__.InertiaMeta.fields
+                field: getattr(o, field) for field in o.__class__.InertiaMeta.fields
             }
 
-        if isinstance(value, models.Model):
-            return model_to_dict(value)
+        if isinstance(o, models.Model):
+            return model_to_dict(o)
 
-        if isinstance(value, QuerySet):
+        if isinstance(o, QuerySet):
             return [
-                (model_to_dict(obj) if isinstance(value.model, models.Model) else obj)
-                for obj in value
+                (model_to_dict(obj) if isinstance(o.model, models.Model) else obj)
+                for obj in o
             ]
 
-        return super().default(value)
+        return super().default(o)
 
 
-def lazy(prop):
+def lazy(prop: Any) -> OptionalProp:
     warnings.warn(
         "lazy is deprecated and will be removed in a future version. Please use optional instead.",
         DeprecationWarning,
@@ -41,13 +41,13 @@ def lazy(prop):
     return optional(prop)
 
 
-def optional(prop):
+def optional(prop: Any) -> OptionalProp:
     return OptionalProp(prop)
 
 
-def defer(prop, group="default", merge=False):
+def defer(prop: Any, group: str = "default", merge: bool = False) -> DeferredProp:
     return DeferredProp(prop, group=group, merge=merge)
 
 
-def merge(prop):
+def merge(prop: Any) -> MergeProp:
     return MergeProp(prop)

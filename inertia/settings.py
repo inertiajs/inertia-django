@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.conf import settings as django_settings
 
 from .utils import InertiaJsonEncoder
@@ -12,7 +14,7 @@ class InertiaSettings:
     INERTIA_SSR_ENABLED = False
     INERTIA_ENCRYPT_HISTORY = False
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str) -> Any:
         try:
             return getattr(django_settings, name)
         except AttributeError:
