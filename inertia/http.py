@@ -1,3 +1,4 @@
+import logging
 from functools import wraps
 from http import HTTPStatus
 from json import dumps as json_encode
@@ -18,6 +19,7 @@ try:
 except ImportError:
     requests = None  # type: ignore[assignment]
 
+logger = logging.getLogger(__name__)
 
 INERTIA_REQUEST_ENCRYPT_HISTORY = "_inertia_encrypt_history"
 INERTIA_SESSION_CLEAR_HISTORY = "_inertia_clear_history"
@@ -172,7 +174,7 @@ class BaseInertiaResponseMixin:
                     **self.template_data,
                 }, INERTIA_SSR_TEMPLATE
             except Exception:
-                pass
+                logger.exception("SSR render request failed")
 
         return {
             "page": data,

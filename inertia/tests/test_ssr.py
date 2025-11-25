@@ -65,7 +65,7 @@ class SSRTestCase(InertiaTestCase):
     @patch("inertia.http.requests")
     def test_it_fallsback_on_failure(self, mock_requests):
         def uh_oh(*args, **kwargs):
-            raise ValueError()  # all exceptions are caught and ignored
+            raise ValueError()  # SSR errors are logged and fall back to client-side rendering
 
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = uh_oh
@@ -75,3 +75,16 @@ class SSRTestCase(InertiaTestCase):
         self.assertContains(
             response, inertia_div("props", props={"name": "Brandon", "sport": "Hockey"})
         )
+
+    @patch("inertia.http.logger")
+    @patch("inertia.http.requests")
+    def test_it_logs_exception_on_ssr_failure(self, mock_requests, mock_logger):
+        error = ValueError("SSR rendering failed")
+
+        mock_response = Mock()
+        mock_response.raise_for_status.side_effect = error
+        mock_requests.post.return_value = mock_response
+
+        self.client.get("/props/")
+
+        mock_logger.exception.assert_called_once_with("SSR render request failed")
