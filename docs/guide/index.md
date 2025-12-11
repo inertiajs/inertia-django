@@ -1,5 +1,5 @@
 ---
-pref: false
+prev: false
 next:
   text: 'Server-side'
   link: '/guide/server-side-setup'
