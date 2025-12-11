@@ -1,3 +1,10 @@
+---
+pref: false
+next:
+  text: 'Server-side'
+  link: '/guide/server-side-setup'
+---
+
 # Introduction
 
 Welcome to the documentation for [inertia-django](https://github.com/inertiajs/inertia-django) adapter for [Django](https://www.djangoproject.com/) and [Inertia.js](https://inertiajs.com/).
