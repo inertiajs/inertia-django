@@ -4,6 +4,7 @@ from http import HTTPStatus
 from json import dumps as json_encode
 from typing import Any, Callable
 
+from django.contrib.messages import get_messages
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
@@ -112,7 +113,16 @@ class BaseInertiaResponseMixin:
                 if isinstance(_props[key], IgnoreOnFirstLoadProp):
                     del _props[key]
 
-        return deep_transform_callables(_props)
+        _props = deep_transform_callables(_props)
+
+        flash = [
+            {"level": m.level_tag, "message": str(m)}
+            for m in get_messages(self.request)
+        ]
+        if flash:
+            _props["messages"] = flash
+
+        return _props
 
     def build_deferred_props(self) -> dict[str, Any] | None:
         if self.request.is_a_partial_render(self.component):
