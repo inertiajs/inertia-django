@@ -286,6 +286,8 @@ share(request, countries=once(lambda: list(Country.objects.values('code', 'name'
 When a user visits a URL with a fragment (e.g. `/article/old-slug#section`) and the server redirects to a different URL, the fragment is normally lost. Call `preserve_fragment()` before returning the redirect to carry the fragment to the new URL:
 
 ```python
+from django.shortcuts import redirect
+
 from inertia import preserve_fragment
 
 def rename_article(request, slug):
