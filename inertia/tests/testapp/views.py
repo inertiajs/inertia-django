@@ -14,7 +14,12 @@ from inertia import (
     render,
     share,
 )
-from inertia.http import INERTIA_SESSION_CLEAR_HISTORY, INERTIA_SESSION_PRESERVE_FRAGMENT, clear_history, encrypt_history
+from inertia.http import (
+    INERTIA_SESSION_CLEAR_HISTORY,
+    INERTIA_SESSION_PRESERVE_FRAGMENT,
+    clear_history,
+    encrypt_history,
+)
 
 
 class ShareMiddleware:

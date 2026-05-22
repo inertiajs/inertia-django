@@ -2,7 +2,6 @@ import json
 
 from inertia.test import InertiaTestCase, inertia_page
 
-
 # ---------------------------------------------------------------------------
 # preserveFragment
 # ---------------------------------------------------------------------------
@@ -244,9 +243,7 @@ class UseHttpCsrfTestCase(InertiaTestCase):
 
         class FakeGet:
             def __call__(self, request):
-                return JsonResponse(
-                    {"errors": {"email": "required"}}, status=422
-                )
+                return JsonResponse({"errors": {"email": "required"}}, status=422)
 
         middleware = InertiaMiddleware(FakeGet())
 
@@ -261,7 +258,9 @@ class UseHttpCsrfTestCase(InertiaTestCase):
         response = middleware(request)
 
         self.assertEqual(response.status_code, 422)
-        self.assertEqual(json.loads(response.content), {"errors": {"email": "required"}})
+        self.assertEqual(
+            json.loads(response.content), {"errors": {"email": "required"}}
+        )
 
     def test_non_inertia_redirect_passes_through_unchanged(self):
         """A redirect response from a view that handles a useHttp request is
