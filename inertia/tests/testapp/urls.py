@@ -25,6 +25,7 @@ urlpatterns = [
     path("clear-history-type-error/", views.clear_history_type_error_test),
     # Once props (Inertia v3)
     path("once/", views.once_test),
+    path("once-shared/", views.once_shared_test),
     path("once-fresh/", views.once_fresh_test),
     # preserveFragment (Inertia v3)
     path("preserve-fragment/", views.preserve_fragment_page_test),

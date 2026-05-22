@@ -116,6 +116,44 @@ class OncePropsTestCase(InertiaTestCase):
         self.assertIn("plans", page["props"])
 
 
+class SharedOncePropsTestCase(InertiaTestCase):
+    """Tests that once props set via share() are handled correctly.
+
+    Once props in shared data must appear in the onceProps metadata so the
+    client knows to cache them, and must be skipped on subsequent requests
+    when the client reports holding them via X-Inertia-Except-Once-Props.
+    """
+
+    def test_shared_once_props_metadata_is_included(self):
+        """A once prop set via share() appears in onceProps on the first load."""
+        response = self.inertia.get("/once-shared/")
+        page = response.json()
+
+        self.assertIn("onceProps", page)
+        self.assertIn("plans", page["onceProps"])
+
+    def test_shared_once_props_value_is_resolved_on_first_load(self):
+        """The value of a shared once prop is present in props on first load."""
+        response = self.inertia.get("/once-shared/")
+        page = response.json()
+
+        self.assertIn("plans", page["props"])
+        self.assertEqual(page["props"]["plans"], ["basic", "pro"])
+
+    def test_shared_once_props_are_skipped_when_client_has_them(self):
+        """A shared once prop is excluded from props when the client reports
+        holding it via X-Inertia-Except-Once-Props."""
+        response = self.inertia.get(
+            "/once-shared/",
+            HTTP_X_INERTIA_EXCEPT_ONCE_PROPS="plans",
+        )
+        page = response.json()
+
+        self.assertNotIn("plans", page["props"])
+        self.assertIn("onceProps", page)
+        self.assertIn("plans", page["onceProps"])
+
+
 class CallablePropStaticValueTestCase(InertiaTestCase):
     """Tests that prop classes correctly handle plain (non-callable) values.
 

@@ -17,6 +17,22 @@ class ClientWithLastResponse:
         self.last_response = self.client.get(*args, **kwargs)
         return self.last_response
 
+    def post(self, *args, **kwargs):
+        self.last_response = self.client.post(*args, **kwargs)
+        return self.last_response
+
+    def put(self, *args, **kwargs):
+        self.last_response = self.client.put(*args, **kwargs)
+        return self.last_response
+
+    def patch(self, *args, **kwargs):
+        self.last_response = self.client.patch(*args, **kwargs)
+        return self.last_response
+
+    def delete(self, *args, **kwargs):
+        self.last_response = self.client.delete(*args, **kwargs)
+        return self.last_response
+
     def __getattr__(self, name):
         return getattr(self.client, name)
 

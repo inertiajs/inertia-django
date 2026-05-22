@@ -101,12 +101,12 @@ class BaseInertiaResponseMixin:
                 f"Expected bool for clear_history, got {type(clear_history).__name__}"
             )
 
-        preserve_fragment = self.request.session.pop(
+        should_preserve_fragment = self.request.session.pop(
             INERTIA_SESSION_PRESERVE_FRAGMENT, False
         )
-        if not isinstance(preserve_fragment, bool):
+        if not isinstance(should_preserve_fragment, bool):
             raise TypeError(
-                f"Expected bool for preserve_fragment, got {type(preserve_fragment).__name__}"
+                f"Expected bool for preserve_fragment, got {type(should_preserve_fragment).__name__}"
             )
 
         _page: dict[str, Any] = {
@@ -118,7 +118,7 @@ class BaseInertiaResponseMixin:
             "clearHistory": clear_history,
         }
 
-        if preserve_fragment:
+        if should_preserve_fragment:
             _page["preserveFragment"] = True
 
         _deferred_props = self.build_deferred_props()
@@ -229,9 +229,10 @@ class BaseInertiaResponseMixin:
         if self.request.is_a_partial_render(self.component):
             return {}
 
+        merged = {**self.request.inertia, **self.props}
         return {
             key: {"prop": key, "expiresAt": None}
-            for key, prop in self.props.items()
+            for key, prop in merged.items()
             if isinstance(prop, OnceProp)
         }
 

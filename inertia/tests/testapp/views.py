@@ -179,6 +179,14 @@ def once_test(request):
 
 
 @inertia("TestComponent")
+def once_shared_test(request):
+    """Exercises once props set via share() to verify they appear in onceProps
+    metadata and are correctly skipped when the client already holds them."""
+    share(request, plans=once(lambda: ["basic", "pro"]))
+    return {"name": "Brandon"}
+
+
+@inertia("TestComponent")
 def once_fresh_test(request):
     return {
         "name": "Brandon",
