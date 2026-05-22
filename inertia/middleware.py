@@ -9,14 +9,31 @@ from .settings import settings
 
 
 class InertiaMiddleware:
+    """Central middleware for all Inertia.js protocol concerns.
+
+    Responsibilities:
+    - Ensure a CSRF cookie is always set, including for non-Inertia (useHttp)
+      requests that do not go through Django's normal template rendering path.
+    - Convert PUT/PATCH/DELETE redirects to 303 so the subsequent request
+      is always treated as a GET by the browser.
+    - Detect asset version mismatches and force a full-page refresh.
+
+    Non-Inertia requests (e.g. those made via the useHttp hook in Inertia v3)
+    pass through this middleware without modification beyond CSRF cookie
+    injection.  It is the responsibility of the individual view to return an
+    appropriate response (e.g. 422 JSON) for useHttp validation errors.
+    """
+
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
         response = self.get_response(request)
 
-        # Inertia requests don't ever render templates, so they skip the typical Django
-        # CSRF path. We'll manually add a CSRF token for every request here.
+        # Inertia requests bypass Django's normal template rendering and
+        # therefore never hit the standard CSRF middleware path that attaches
+        # the cookie.  Set the token explicitly here so it is available for
+        # both Inertia page visits and non-visit XHR (useHttp) requests.
         get_token(request)
 
         if not self.is_inertia_request(request):
@@ -50,9 +67,6 @@ class InertiaMiddleware:
             request.headers.get("X-Inertia-Version", settings.INERTIA_VERSION)
             != settings.INERTIA_VERSION
         )
-
-    def is_stale_inertia_get(self, request: HttpRequest) -> bool:
-        return request.method == "GET" and self.is_stale(request)
 
     def force_refresh(self, request: HttpRequest) -> HttpResponse:
         # If the storage middleware is not defined, get_messages returns an empty list
