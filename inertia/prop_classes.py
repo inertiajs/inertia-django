@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, cast
 
 
 class _Unset:
@@ -170,8 +170,8 @@ class MergeProp(CallableProp, MergeableProp):
                 prepend = False
         if append is not False and prepend is not False:
             raise ValueError("append and prepend cannot both be configured")
-        self.append = append
-        self.prepend = prepend
+        self.append = cast(MergeConfiguration, append)
+        self.prepend = cast(MergeConfiguration, prepend)
         self.deep_merge = deep_merge
         self._match_on = _as_list(match_on)
 
