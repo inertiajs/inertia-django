@@ -324,6 +324,17 @@ def v3_deferred_scroll_test(request):
 
 
 @inertia("TestComponent")
+def v3_deferred_once_test(request):
+    return {
+        "report": defer(
+            lambda: {"winner": "Brandon"},
+            once=True,
+            key="cached-report",
+        )
+    }
+
+
+@inertia("TestComponent")
 def messages_test(request):
     messages.success(request, "Profile saved!")
     return {}

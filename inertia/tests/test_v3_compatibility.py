@@ -58,8 +58,8 @@ class V3PropsCompatibilityTestCase(InertiaTestCase):
 
         self.assertEqual(page["props"], {"score": "Brandon"})
         self.assertEqual(page["deferredProps"], {"default": ["players"]})
-        self.assertNotIn("mergeProps", page)
-        self.assertNotIn("scrollProps", page)
+        self.assertEqual(page["mergeProps"], ["players"])
+        self.assertEqual(page["scrollProps"]["players"]["nextPage"], 2)
 
         partial_page = self.inertia.get(
             "/v3/deferred-scroll/",
@@ -72,6 +72,28 @@ class V3PropsCompatibilityTestCase(InertiaTestCase):
         )
         self.assertEqual(partial_page["mergeProps"], ["players"])
         self.assertEqual(partial_page["scrollProps"]["players"]["nextPage"], 2)
+
+    def test_cached_deferred_once_prop_is_not_advertised_as_deferred(self):
+        initial_page = self.inertia.get("/v3/deferred-once/").json()
+
+        self.assertEqual(initial_page["props"], {})
+        self.assertEqual(initial_page["deferredProps"], {"default": ["report"]})
+        self.assertEqual(
+            initial_page["onceProps"],
+            {"cached-report": {"prop": "report", "expiresAt": None}},
+        )
+
+        cached_page = self.inertia.get(
+            "/v3/deferred-once/",
+            HTTP_X_INERTIA_EXCEPT_ONCE_PROPS="cached-report",
+        ).json()
+
+        self.assertEqual(cached_page["props"], {})
+        self.assertNotIn("deferredProps", cached_page)
+        self.assertEqual(
+            cached_page["onceProps"],
+            {"cached-report": {"prop": "report", "expiresAt": None}},
+        )
 
     def test_always_prop_is_included_in_partial_reloads(self):
         page = self.inertia.get(

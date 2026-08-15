@@ -41,4 +41,5 @@ urlpatterns = [
     path("v3/merge/", views.v3_merge_props_test),
     path("v3/scroll/", views.v3_scroll_test),
     path("v3/deferred-scroll/", views.v3_deferred_scroll_test),
+    path("v3/deferred-once/", views.v3_deferred_once_test),
 ]

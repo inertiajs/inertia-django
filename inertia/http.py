@@ -159,8 +159,13 @@ class PropsResolver:
         if isinstance(prop, list):
             return self._resolve_list(prop, path, parent_resolved)
 
-        self._collect_metadata(prop, path)
-        if self._should_skip_loaded_once_prop(prop, path):
+        is_cached_once_prop = self._should_skip_loaded_once_prop(prop, path)
+        self._collect_metadata(
+            prop,
+            path,
+            include_deferred=not is_cached_once_prop,
+        )
+        if is_cached_once_prop:
             return SKIP_PROP
         if not self._is_partial() and (
             isinstance(prop, IgnoreOnFirstLoadProp)
@@ -238,22 +243,22 @@ class PropsResolver:
             and prop.once_key(path) in self.request.except_once_prop_keys()
         )
 
-    def _collect_metadata(self, prop: Any, path: str) -> None:
+    def _collect_metadata(
+        self, prop: Any, path: str, *, include_deferred: bool = True
+    ) -> None:
         if not isinstance(prop, CallableProp):
             return
         if (
-            isinstance(prop, DeferredProp)
-            or isinstance(prop, ScrollProp)
-            and prop.defer
-        ) and not self._is_partial():
-            self.metadata["deferredProps"].setdefault(prop.group, []).append(path)
-        if (
-            isinstance(prop, MergeableProp)
-            and prop.should_merge()
-            and not (
-                isinstance(prop, ScrollProp) and prop.defer and not self._is_partial()
+            include_deferred
+            and (
+                isinstance(prop, DeferredProp)
+                or isinstance(prop, ScrollProp)
+                and prop.defer
             )
+            and not self._is_partial()
         ):
+            self.metadata["deferredProps"].setdefault(prop.group, []).append(path)
+        if isinstance(prop, MergeableProp) and prop.should_merge():
             self._collect_merge_metadata(prop, path)
         if prop.should_resolve_once():
             self.metadata["onceProps"][prop.once_key(path)] = {
