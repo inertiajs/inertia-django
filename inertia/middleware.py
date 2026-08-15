@@ -41,14 +41,14 @@ class InertiaMiddleware:
         if not self.is_inertia_request(request):
             return response
 
-        if self.is_non_post_redirect(request, response):
-            response.status_code = 303
+        if request.method == "GET" and self.is_stale(request):
+            return self.force_refresh(request)
 
         if self.redirect_has_fragment(response) and not self.is_prefetch(request):
             return self.inertia_redirect(response)
 
-        if request.method == "GET" and self.is_stale(request):
-            return self.force_refresh(request)
+        if self.is_non_post_redirect(request, response):
+            response.status_code = 303
 
         return response
 

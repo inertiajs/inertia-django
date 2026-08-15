@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from django.http import HttpResponseRedirect
 from django.test import RequestFactory
 
-from inertia import once
+from inertia import merge, once
 from inertia.middleware import InertiaMiddleware
 from inertia.test import InertiaTestCase
 
@@ -30,6 +30,27 @@ class V3PropsCompatibilityTestCase(InertiaTestCase):
         self.assertEqual(
             page["onceProps"], {"locale": {"prop": "config.locale", "expiresAt": None}}
         )
+
+    def test_cached_once_props_are_not_refreshed_by_partial_except(self):
+        page = self.inertia.get(
+            "/v3/nested/",
+            HTTP_X_INERTIA_PARTIAL_COMPONENT="TestComponent",
+            HTTP_X_INERTIA_PARTIAL_EXCEPT="user.token",
+            HTTP_X_INERTIA_EXCEPT_ONCE_PROPS="locale",
+        ).json()
+
+        self.assertEqual(page["props"]["config"], {"timezone": "UTC"})
+        self.assertEqual(
+            page["onceProps"], {"locale": {"prop": "config.locale", "expiresAt": None}}
+        )
+
+    def test_merge_prepend_does_not_require_append_false(self):
+        nested = merge(lambda: [], prepend="items")
+        root = merge(lambda: [], prepend=True)
+
+        self.assertEqual(nested.merge_paths("feed", prepend=True), ["feed.items"])
+        self.assertEqual(nested.merge_paths("feed"), [])
+        self.assertEqual(root.merge_paths("feed", prepend=True), ["feed"])
 
     def test_merge_metadata_supports_nested_paths_and_matching(self):
         page = self.inertia.get("/v3/merge/").json()
@@ -140,3 +161,32 @@ class V3MiddlewareCompatibilityTestCase(InertiaTestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+
+    def test_stale_get_takes_priority_over_fragment_redirect(self):
+        middleware = InertiaMiddleware(
+            lambda request: HttpResponseRedirect("/players#goalies")
+        )
+        response = middleware(
+            RequestFactory().get(
+                "/players", HTTP_X_INERTIA="true", HTTP_X_INERTIA_VERSION="stale"
+            )
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response["X-Inertia-Location"], "http://testserver/players")
+        self.assertNotIn("X-Inertia-Redirect", response)
+
+    def test_non_post_fragment_redirect_uses_protocol_response(self):
+        middleware = InertiaMiddleware(
+            lambda request: HttpResponseRedirect("/players#goalies")
+        )
+
+        for method in ("put", "patch", "delete"):
+            with self.subTest(method=method):
+                request = getattr(RequestFactory(), method)(
+                    "/players", HTTP_X_INERTIA="true"
+                )
+                response = middleware(request)
+
+                self.assertEqual(response.status_code, 409)
+                self.assertEqual(response["X-Inertia-Redirect"], "/players#goalies")

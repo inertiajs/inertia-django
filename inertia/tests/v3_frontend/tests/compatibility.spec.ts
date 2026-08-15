@@ -5,11 +5,16 @@ test('uses Django partial-reload and once-prop responses with the v3 client', as
   await expect(page.getByTestId('props')).toContainText('en-US')
   await expect(page.getByTestId('props')).toContainText('UTC')
 
-  const response = page.waitForResponse(
-    (candidate) => candidate.request().headers()['x-inertia-partial-data'] === 'config.locale',
-  )
-  await page.getByRole('button', { name: 'Reload locale' }).click()
-  await response
+  const [response] = await Promise.all([
+    page.waitForResponse(
+      (candidate) => candidate.request().headers()['x-inertia-partial-data'] === 'config.locale',
+    ),
+    page.getByRole('button', { name: 'Reload locale' }).click(),
+  ])
+  expect(response.status()).toBe(200)
+  await expect(response.json()).resolves.toMatchObject({
+    props: { config: { locale: 'en-US' } },
+  })
 
   await expect(page.getByTestId('props')).toContainText('en-US')
   await expect(page.getByTestId('props')).toContainText('UTC')

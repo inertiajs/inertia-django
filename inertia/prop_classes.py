@@ -5,6 +5,14 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 
+class _Unset:
+    pass
+
+
+_UNSET = _Unset()
+MergeConfiguration = bool | str | list[str]
+
+
 class CallableProp:
     """A lazily-resolved prop plus the protocol options it carries."""
 
@@ -134,8 +142,8 @@ class MergeProp(CallableProp, MergeableProp):
         self,
         prop: Any,
         *,
-        append: bool | str | list[str] = True,
-        prepend: bool | str | list[str] = False,
+        append: MergeConfiguration | _Unset = _UNSET,
+        prepend: MergeConfiguration | _Unset = _UNSET,
         deep_merge: bool = False,
         match_on: str | list[str] | None = None,
         once: bool = False,
@@ -150,8 +158,16 @@ class MergeProp(CallableProp, MergeableProp):
             expires_at=expires_at,
             fresh=fresh,
         )
-        if deep_merge and (append is not True or prepend is not False):
-            raise ValueError("deep_merge cannot be combined with append or prepend")
+        if deep_merge:
+            if append is not _UNSET or prepend is not _UNSET:
+                raise ValueError("deep_merge cannot be combined with append or prepend")
+            append = True
+            prepend = False
+        else:
+            if append is _UNSET:
+                append = False if prepend is not _UNSET else True
+            if prepend is _UNSET:
+                prepend = False
         if append is not False and prepend is not False:
             raise ValueError("append and prepend cannot both be configured")
         self.append = append
