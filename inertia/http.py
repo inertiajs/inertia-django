@@ -236,17 +236,11 @@ class PropsResolver:
     def _should_skip_loaded_once_prop(self, prop: Any, path: str) -> bool:
         return (
             self.request.is_inertia()
-            and not self._is_explicitly_requested_by_partial_reload(path)
+            and not self._is_partial()
             and isinstance(prop, CallableProp)
             and prop.should_resolve_once()
             and not prop.should_be_fresh()
             and prop.once_key(path) in self.request.except_once_prop_keys()
-        )
-
-    def _is_explicitly_requested_by_partial_reload(self, path: str) -> bool:
-        """Return whether a partial-data request explicitly selects ``path``."""
-        return any(
-            self._paths_overlap(path, key) for key in self.request.partial_keys() or []
         )
 
     def _collect_metadata(

@@ -165,7 +165,7 @@ class MergeProp(CallableProp, MergeableProp):
             prepend = False
         else:
             if append is _UNSET:
-                append = False if prepend is not _UNSET else True
+                append = prepend is _UNSET
             if prepend is _UNSET:
                 prepend = False
         if append is not False and prepend is not False:

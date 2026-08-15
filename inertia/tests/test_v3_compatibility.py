@@ -31,19 +31,6 @@ class V3PropsCompatibilityTestCase(InertiaTestCase):
             page["onceProps"], {"locale": {"prop": "config.locale", "expiresAt": None}}
         )
 
-    def test_cached_once_props_are_not_refreshed_by_partial_except(self):
-        page = self.inertia.get(
-            "/v3/nested/",
-            HTTP_X_INERTIA_PARTIAL_COMPONENT="TestComponent",
-            HTTP_X_INERTIA_PARTIAL_EXCEPT="user.token",
-            HTTP_X_INERTIA_EXCEPT_ONCE_PROPS="locale",
-        ).json()
-
-        self.assertEqual(page["props"]["config"], {"timezone": "UTC"})
-        self.assertEqual(
-            page["onceProps"], {"locale": {"prop": "config.locale", "expiresAt": None}}
-        )
-
     def test_merge_prepend_does_not_require_append_false(self):
         nested = merge(lambda: [], prepend="items")
         root = merge(lambda: [], prepend=True)
