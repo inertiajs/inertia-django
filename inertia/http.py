@@ -89,6 +89,10 @@ class BaseInertiaResponseMixin:
             "clearHistory": clear_history,
         }
 
+        _flash = self.build_flash()
+        if _flash:
+            _page["flash"] = _flash
+
         _deferred_props = self.build_deferred_props()
         if _deferred_props:
             _page["deferredProps"] = _deferred_props
@@ -113,16 +117,15 @@ class BaseInertiaResponseMixin:
                 if isinstance(_props[key], IgnoreOnFirstLoadProp):
                     del _props[key]
 
-        _props = deep_transform_callables(_props)
+        return deep_transform_callables(_props)
 
-        flash = [
-            {"level": m.level_tag, "message": str(m)}
-            for m in get_messages(self.request)
+    def build_flash(self) -> dict[str, Any]:
+        messages = [
+            {"level": message.level_tag, "message": str(message)}
+            for message in get_messages(self.request)
         ]
-        if flash:
-            _props["messages"] = flash
 
-        return _props
+        return {"messages": messages} if messages else {}
 
     def build_deferred_props(self) -> dict[str, Any] | None:
         if self.request.is_a_partial_render(self.component):
