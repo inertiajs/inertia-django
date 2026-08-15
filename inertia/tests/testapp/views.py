@@ -47,17 +47,6 @@ def empty_test(request):
     return {}
 
 
-@inertia("TestComponent")
-def messages_test(request):
-    messages.success(request, "Profile saved!")
-    return {}
-
-
-@inertia("TestComponent")
-def no_messages_test(request):
-    return {}
-
-
 def redirect_test(request):
     return redirect(empty_test)
 
@@ -332,3 +321,14 @@ def v3_deferred_scroll_test(request):
             defer=True,
         ),
     }
+
+
+@inertia("TestComponent")
+def messages_test(request):
+    messages.success(request, "Profile saved!")
+    return {}
+
+
+@inertia("TestComponent")
+def no_messages_test(request):
+    return {}

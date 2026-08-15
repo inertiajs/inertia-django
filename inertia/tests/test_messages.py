@@ -7,7 +7,11 @@ class FlashMessagesTestCase(InertiaTestCase):
 
         self.assertEqual(
             self.page()["flash"],
-            {"messages": [{"level": "success", "message": "Profile saved!"}]},
+            {
+                "messages": [
+                    {"level": "success", "message": "Profile saved!"},
+                ],
+            },
         )
         self.assertNotIn("messages", self.props())
 
@@ -20,7 +24,7 @@ class FlashMessagesTestCase(InertiaTestCase):
         self.inertia.get("/messages/")
         self.assertIn("flash", self.page())
 
-        self.inertia.get("/empty/")
+        self.inertia.get("/no-messages/")
         self.assertNotIn("flash", self.page())
 
     def test_messages_are_included_on_partial_requests(self):
@@ -32,5 +36,9 @@ class FlashMessagesTestCase(InertiaTestCase):
 
         self.assertEqual(
             self.page()["flash"],
-            {"messages": [{"level": "success", "message": "Profile saved!"}]},
+            {
+                "messages": [
+                    {"level": "success", "message": "Profile saved!"},
+                ],
+            },
         )
