@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict as base_model_to_dict
 
-from .prop_classes import DeferredProp, MergeProp, OptionalProp
+from .prop_classes import DeferredProp, MergeProp, OnceProp, OptionalProp
 
 
 def model_to_dict(model: models.Model) -> dict[str, Any]:
@@ -43,6 +43,20 @@ def lazy(prop: Any) -> OptionalProp:
 
 def optional(prop: Any) -> OptionalProp:
     return OptionalProp(prop)
+
+
+def once(prop: Any, fresh: bool = False) -> OnceProp:
+    """
+    Mark a prop as a once prop.
+
+    Once props are resolved on the first visit and remembered by the client.
+    On subsequent visits the server skips re-resolving the prop when the client
+    reports it already holds the value via X-Inertia-Except-Once-Props.
+
+    Set fresh=True to force the server to always re-resolve the prop regardless
+    of whether the client reports it as already loaded.
+    """
+    return OnceProp(prop, fresh=fresh)
 
 
 def defer(prop: Any, group: str = "default", merge: bool = False) -> DeferredProp:

@@ -48,24 +48,20 @@ You can also check out the official Inertia docs at https://inertiajs.com/.
 
 ### CSRF
 
-Django's CSRF tokens are tightly coupled with rendering templates so Inertia Django automatically handles adding the CSRF cookie for you to each Inertia response. Because the default names Django users for the CSRF headers don't match Axios (the Javascript request library Inertia uses), we'll need to either modify Axios's defaults OR Django's settings.
+Django's CSRF tokens are tightly coupled with rendering templates, so Inertia Django automatically handles adding the CSRF cookie to every response — including non-visit XHR requests made via the `useHttp` hook introduced in Inertia v3.
 
-**You only need to choose one of the following options, just pick whichever makes the most sense to you!**
-
-In your `entry.js` file
+No additional configuration is required. If you are upgrading from Inertia v2 and previously configured Axios to handle CSRF, those lines can be removed:
 
 ```javascript
-axios.defaults.xsrfHeaderName = "X-CSRFToken";
-axios.defaults.xsrfCookieName = "csrftoken";
+// No longer needed with Inertia v3
+// axios.defaults.xsrfHeaderName = "X-CSRFToken";
+// axios.defaults.xsrfCookieName = "csrftoken";
 ```
 
-OR
-
-In your Django `settings.py` file
-
 ```python
-CSRF_HEADER_NAME = 'HTTP_X_XSRF_TOKEN'
-CSRF_COOKIE_NAME = 'XSRF-TOKEN'
+# No longer needed with Inertia v3
+# CSRF_HEADER_NAME = 'HTTP_X_XSRF_TOKEN'
+# CSRF_COOKIE_NAME = 'XSRF-TOKEN'
 ```
 
 ## Usage
@@ -133,6 +129,7 @@ def inertia_share(get_response):
     return get_response(request)
   return middleware
 ```
+
 ### Prop Serialization
 
 Unlike Rails and Laravel, Django does not handle converting objects to JSON by default so Inertia Django offers two different ways to handle prop serialization.
@@ -252,6 +249,56 @@ def example(request):
     'data': defer(lambda: Paginator(objects, 3), merge=True),
   }
 ```
+
+### Once Props
+
+Some data rarely changes, is expensive to compute, or is simply large. Rather than sending it on every response, you can use `once` props. Once props are resolved on the first visit and remembered by the client. On subsequent visits the server skips re-resolving them, saving both CPU and bandwidth.
+
+```python
+from inertia import once, inertia
+
+@inertia('ExampleComponent')
+def example(request):
+  return {
+    'name': lambda: 'Brandon',
+    'plans': once(lambda: Plan.objects.all()), # resolved once, then cached client-side
+  }
+```
+
+Pass `fresh=True` to force re-resolution on every request, regardless of whether the client already holds the value:
+
+```python
+@inertia('Billing/Plans')
+def plans(request):
+  return {
+    'plans': once(lambda: Plan.objects.all(), fresh=True),
+  }
+```
+
+Once props also work in shared data:
+
+```python
+share(request, countries=once(lambda: list(Country.objects.values('code', 'name'))))
+```
+
+### Preserve Fragment
+
+When a user visits a URL with a fragment (e.g. `/article/old-slug#section`) and the server redirects to a different URL, the fragment is normally lost. Call `preserve_fragment()` before returning the redirect to carry the fragment to the new URL:
+
+```python
+from django.shortcuts import redirect
+
+from inertia import preserve_fragment
+
+def rename_article(request, slug):
+    article = Article.objects.get(slug=slug)
+    article.slug = request.POST['new_slug']
+    article.save()
+    preserve_fragment(request)
+    return redirect('articles:show', slug=article.slug)
+```
+
+The client will navigate to `/article/new-slug#section` instead of `/article/new-slug`.
 
 ### Json Encoding
 

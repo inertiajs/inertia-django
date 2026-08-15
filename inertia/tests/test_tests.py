@@ -26,3 +26,27 @@ class TestTestCase(InertiaTestCase):
         self.client.get("/props/")
 
         self.assertComponentUsed("TestComponent")
+
+
+class ClientWithLastResponseTrackingTestCase(InertiaTestCase):
+    """Tests that ClientWithLastResponse tracks last_response for all HTTP methods."""
+
+    def test_get_updates_last_response(self):
+        self.inertia.get("/empty/")
+        self.assertIsNotNone(self.inertia.last_response)
+
+    def test_post_updates_last_response(self):
+        self.inertia.post("/redirect/")
+        self.assertIsNotNone(self.inertia.last_response)
+
+    def test_put_updates_last_response(self):
+        self.inertia.put("/redirect/")
+        self.assertIsNotNone(self.inertia.last_response)
+
+    def test_patch_updates_last_response(self):
+        self.inertia.patch("/redirect/")
+        self.assertIsNotNone(self.inertia.last_response)
+
+    def test_delete_updates_last_response(self):
+        self.inertia.delete("/redirect/")
+        self.assertIsNotNone(self.inertia.last_response)

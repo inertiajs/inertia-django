@@ -2,8 +2,24 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
 
-from inertia import defer, inertia, lazy, location, merge, optional, render, share
-from inertia.http import INERTIA_SESSION_CLEAR_HISTORY, clear_history, encrypt_history
+from inertia import (
+    defer,
+    inertia,
+    lazy,
+    location,
+    merge,
+    once,
+    optional,
+    preserve_fragment,
+    render,
+    share,
+)
+from inertia.http import (
+    INERTIA_SESSION_CLEAR_HISTORY,
+    INERTIA_SESSION_PRESERVE_FRAGMENT,
+    clear_history,
+    encrypt_history,
+)
 
 
 class ShareMiddleware:
@@ -152,3 +168,94 @@ def clear_history_redirect_test(request):
 def clear_history_type_error_test(request):
     request.session[INERTIA_SESSION_CLEAR_HISTORY] = "foo"
     return {}
+
+
+# ---------------------------------------------------------------------------
+# Once props (Inertia v3)
+# ---------------------------------------------------------------------------
+
+
+@inertia("TestComponent")
+def once_test(request):
+    return {
+        "name": "Brandon",
+        "plans": once(lambda: ["basic", "pro"]),
+    }
+
+
+@inertia("TestComponent")
+def once_shared_test(request):
+    """Exercises once props set via share() to verify they appear in onceProps
+    metadata and are correctly skipped when the client already holds them."""
+    share(request, plans=once(lambda: ["basic", "pro"]))
+    return {"name": "Brandon"}
+
+
+@inertia("TestComponent")
+def once_fresh_test(request):
+    return {
+        "name": "Brandon",
+        "plans": once(lambda: ["basic", "pro"], fresh=True),
+    }
+
+
+# ---------------------------------------------------------------------------
+# preserveFragment (Inertia v3)
+# ---------------------------------------------------------------------------
+
+
+@inertia("TestComponent")
+def preserve_fragment_page_test(request):
+    """Simulates the page rendered after following a redirect that had
+    preserve_fragment set on the preceding response."""
+    preserve_fragment(request)
+    return {"name": "Brandon"}
+
+
+def preserve_fragment_redirect_test(request):
+    """Sets preserve_fragment and issues a redirect; the flag travels via
+    the session to the next Inertia response."""
+    preserve_fragment(request)
+    return redirect(empty_test)
+
+
+@inertia("TestComponent")
+def preserve_fragment_type_error_test(request):
+    request.session[INERTIA_SESSION_PRESERVE_FRAGMENT] = "not-a-bool"
+    return {}
+
+
+# ---------------------------------------------------------------------------
+# preserveErrors / shared errors partial-reload filtering (Inertia v3)
+# ---------------------------------------------------------------------------
+
+
+class ShareErrorsMiddleware:
+    """Shares an errors prop to simulate form validation errors in shared
+    data.  Used to verify that partial reloads correctly exclude shared
+    errors when they are not in X-Inertia-Partial-Data."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def process_request(self, request):
+        share(request, errors={"email": "required"})
+
+
+@decorator_from_middleware(ShareErrorsMiddleware)
+@inertia("TestComponent")
+def preserve_errors_test(request):
+    return {"name": "Brandon"}
+
+
+# ---------------------------------------------------------------------------
+# Infinite scroll / X-Inertia-Infinite-Scroll-Merge-Intent (Inertia v3)
+# ---------------------------------------------------------------------------
+
+
+@inertia("TestComponent")
+def infinite_scroll_test(request):
+    return {
+        "name": "Brandon",
+        "items": merge(lambda: ["item1", "item2"]),
+    }

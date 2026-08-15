@@ -17,6 +17,22 @@ class ClientWithLastResponse:
         self.last_response = self.client.get(*args, **kwargs)
         return self.last_response
 
+    def post(self, *args, **kwargs):
+        self.last_response = self.client.post(*args, **kwargs)
+        return self.last_response
+
+    def put(self, *args, **kwargs):
+        self.last_response = self.client.put(*args, **kwargs)
+        return self.last_response
+
+    def patch(self, *args, **kwargs):
+        self.last_response = self.client.patch(*args, **kwargs)
+        return self.last_response
+
+    def delete(self, *args, **kwargs):
+        self.last_response = self.client.delete(*args, **kwargs)
+        return self.last_response
+
     def __getattr__(self, name):
         return getattr(self.client, name)
 
@@ -64,6 +80,9 @@ class InertiaTestCase(BaseInertiaTestCase, TestCase):
     def deferred_props(self):
         return self.page()["deferredProps"]
 
+    def once_props(self):
+        return self.page()["onceProps"]
+
     def template_data(self):
         context = self.mock_render.call_args[0][1]
         return {
@@ -100,6 +119,9 @@ def inertia_page(
     template_data=None,
     deferred_props=None,
     merge_props=None,
+    once_props=None,
+    preserve_fragment=False,
+    prepend_props=None,
 ):
     props = props or {}
     template_data = template_data or {}
@@ -112,11 +134,20 @@ def inertia_page(
         "clearHistory": False,
     }
 
+    if preserve_fragment:
+        _page["preserveFragment"] = True
+
     if deferred_props:
         _page["deferredProps"] = deferred_props
 
     if merge_props:
         _page["mergeProps"] = merge_props
+
+    if prepend_props:
+        _page["prependProps"] = prepend_props
+
+    if once_props:
+        _page["onceProps"] = once_props
 
     return _page
 
