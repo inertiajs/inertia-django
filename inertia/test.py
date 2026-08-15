@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 from django.template.loader import render_to_string as base_render_to_string
 from django.test import Client, TestCase
-from django.utils.html import escape
 
 from inertia.settings import settings
 
@@ -122,6 +121,7 @@ def inertia_page(
     once_props=None,
     preserve_fragment=False,
     prepend_props=None,
+    shared_props=None,
 ):
     props = props or {}
     template_data = template_data or {}
@@ -149,9 +149,21 @@ def inertia_page(
     if once_props:
         _page["onceProps"] = once_props
 
+    if shared_props:
+        _page["sharedProps"] = shared_props
+
     return _page
 
 
 def inertia_div(*args, **kwargs):
     page = inertia_page(*args, **kwargs)
-    return f'<div id="app" data-page="{escape(dumps(page))}"></div>'
+    data = (
+        dumps(page)
+        .replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+    )
+    return (
+        f'<script data-page="app" type="application/json">{data}</script>'
+        '\n  <div id="app"></div>'
+    )

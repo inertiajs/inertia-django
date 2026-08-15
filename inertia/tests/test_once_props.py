@@ -57,8 +57,9 @@ class OncePropsTestCase(InertiaTestCase):
 
         self.assertNotIn("plans", page["props"])
 
-    def test_once_props_metadata_is_absent_on_partial_render(self):
-        """The onceProps key is not included in partial reload responses."""
+    def test_once_props_metadata_is_included_for_selected_partial_props(self):
+        """Selected once props retain metadata on partial responses so the
+        client can continue to track its cache entry."""
         response = self.inertia.get(
             "/once/",
             HTTP_X_INERTIA_PARTIAL_DATA="plans",
@@ -66,7 +67,10 @@ class OncePropsTestCase(InertiaTestCase):
         )
         page = response.json()
 
-        self.assertNotIn("onceProps", page)
+        self.assertEqual(
+            page["onceProps"],
+            {"plans": {"prop": "plans", "expiresAt": None}},
+        )
 
     def test_once_props_are_resolved_on_explicit_partial_reload(self):
         """Even when listed in X-Inertia-Except-Once-Props a once prop is

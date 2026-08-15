@@ -1,8 +1,12 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-INERTIA_LAYOUT = "layout.html"
+DEBUG = True
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver"]
+
+INERTIA_LAYOUT = os.environ.get("INERTIA_LAYOUT", "layout.html")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -19,6 +23,7 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.messages",
     "django.contrib.sessions",
     "django.contrib.sites",
     "inertia",

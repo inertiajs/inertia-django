@@ -94,6 +94,15 @@ export default defineConfig({
                     ],
                 },
                 {
+                    text: "Upgrading",
+                    items: [
+                        {
+                            text: "Upgrading to v3",
+                            link: "/guide/upgrading-to-v3",
+                        },
+                    ],
+                },
+                {
                     text: "Core concepts",
                     items: [
                         { text: "Who is it for", link: "/guide/who-is-it-for" },

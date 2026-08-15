@@ -6,7 +6,7 @@ This page contains a detailed specification of the Inertia protocol. Be sure to 
 
 The very first request to an Inertia app is just a regular, full-page browser request, with no special Inertia headers or data. For these requests, the server returns a full HTML document.
 
-This HTML response includes the site assets (CSS, JavaScript) as well as a root `<div>` in the page's body. The root `<div>` serves as a mounting point for the client-side app, and includes a `data-page` attribute with a JSON encoded [page object] for the initial page. Inertia uses this information to boot your client-side framework and display the initial page component.
+This HTML response includes the site assets (CSS, JavaScript), a JSON script containing the initial [page object], and a root `<div>` in the page's body. The root `<div>` serves as a mounting point for the client-side app; Inertia uses the JSON script to boot the framework and display the initial page component.
 
 ```http
 REQUEST
@@ -26,7 +26,8 @@ Content-Type: text/html; charset=utf-8
 </head>
 <body>
 
-<div id="app" data-page='{"component":"Event","props":{"event":{"id":80,"title":"Birthday party","start_date":"2019-06-02","description":"Come out and celebrate Jonathan&apos;s 36th birthday party!"}},"url":"/events/80","version":"c32b8e4965f418ad16eaebba1d4e960f"}'></div>
+<script data-page="app" type="application/json">{"component":"Event","props":{"event":{"id":80,"title":"Birthday party","start_date":"2019-06-02","description":"Come out and celebrate Jonathan's 36th birthday party!"}},"url":"/events/80","version":"c32b8e4965f418ad16eaebba1d4e960f"}</script>
+<div id="app"></div>
 
 </body>
 </html>
@@ -83,7 +84,7 @@ Inertia shares data between the server and client via a page object. This object
 5. `encryptHistory`: Whether or not to encrypt the current page's history state.
 6. `clearHistory`: Whether or not to clear any encrypted history state.
 
-On standard full page visits, the page object is JSON encoded into the `data-page` attribute in the root `<div>`. On Inertia visits, the page object is returned as the JSON payload.
+On standard full page visits, the page object is JSON encoded into a `<script data-page="app" type="application/json">` element. On Inertia visits, the page object is returned as the JSON payload.
 
 ## Asset versioning
 

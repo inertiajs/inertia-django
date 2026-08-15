@@ -4,12 +4,20 @@ from http import HTTPStatus
 from json import dumps as json_encode
 from typing import Any, Callable
 
+from django.contrib.messages import get_messages
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
+from django.utils.cache import patch_vary_headers
 
-from .helpers import deep_transform_callables
-from .prop_classes import DeferredProp, IgnoreOnFirstLoadProp, MergeableProp, OnceProp
+from .prop_classes import (
+    AlwaysProp,
+    CallableProp,
+    DeferredProp,
+    IgnoreOnFirstLoadProp,
+    MergeableProp,
+    ScrollProp,
+)
 from .settings import settings
 
 try:
@@ -27,6 +35,7 @@ INERTIA_SESSION_PRESERVE_FRAGMENT = "_inertia_preserve_fragment"
 
 INERTIA_TEMPLATE = "inertia.html"
 INERTIA_SSR_TEMPLATE = "inertia_ssr.html"
+SKIP_PROP = object()
 
 
 class InertiaRequest(HttpRequest):
@@ -41,27 +50,40 @@ class InertiaRequest(HttpRequest):
             inertia_attr.all() if inertia_attr and hasattr(inertia_attr, "all") else {}
         )
 
-    def is_a_partial_render(self, component: str) -> bool:
+    @property
+    def shared_keys(self) -> list[str]:
+        inertia_attr = self.__dict__.get("inertia")
         return (
-            "X-Inertia-Partial-Data" in self.headers
-            and self.headers.get("X-Inertia-Partial-Component", "") == component
+            inertia_attr.keys()
+            if inertia_attr and hasattr(inertia_attr, "keys")
+            else []
         )
 
-    def partial_keys(self) -> list[str]:
-        return self.headers.get("X-Inertia-Partial-Data", "").split(",")
+    def is_a_partial_render(self, component: str) -> bool:
+        return self.headers.get("X-Inertia-Partial-Component", "") == component
+
+    def header_list(self, name: str) -> list[str] | None:
+        if name not in self.headers:
+            return None
+        return [
+            value.strip() for value in self.headers[name].split(",") if value.strip()
+        ]
+
+    def partial_keys(self) -> list[str] | None:
+        return self.header_list("X-Inertia-Partial-Data")
+
+    def partial_except_keys(self) -> list[str] | None:
+        return self.header_list("X-Inertia-Partial-Except")
 
     def reset_keys(self) -> list[str]:
-        return self.headers.get("X-Inertia-Reset", "").split(",")
+        return self.header_list("X-Inertia-Reset") or []
 
     def except_once_prop_keys(self) -> list[str]:
         """
         Return the list of once prop keys that the client reports as already
         loaded, sourced from the X-Inertia-Except-Once-Props request header.
         """
-        value = self.headers.get("X-Inertia-Except-Once-Props", "")
-        if not value:
-            return []
-        return [k.strip() for k in value.split(",") if k.strip()]
+        return self.header_list("X-Inertia-Except-Once-Props") or []
 
     def infinite_scroll_merge_intent(self) -> str:
         """
@@ -88,6 +110,182 @@ class InertiaRequest(HttpRequest):
         return should_encrypt
 
 
+class PropsResolver:
+    """Resolve props once and collect Inertia v3 metadata by dotted path."""
+
+    def __init__(self, request: InertiaRequest, component: str, props: dict[str, Any]):
+        self.request = request
+        self.component = component
+        self.props = props
+        self.metadata: dict[str, Any] = {
+            "deferredProps": {},
+            "mergeProps": [],
+            "prependProps": [],
+            "deepMergeProps": [],
+            "matchPropsOn": [],
+            "scrollProps": {},
+            "onceProps": {},
+            "rescuedProps": [],
+        }
+
+    def resolve(self) -> tuple[dict[str, Any], dict[str, Any]]:
+        resolved = self._resolve_mapping(self.props)
+        return resolved, {key: value for key, value in self.metadata.items() if value}
+
+    def _resolve_mapping(
+        self, props: dict[str, Any], prefix: str = "", parent_resolved: bool = False
+    ) -> dict[str, Any]:
+        resolved: dict[str, Any] = {}
+        for key, prop in props.items():
+            path = f"{prefix}.{key}" if prefix else key
+            value = self._resolve_prop(prop, path, parent_resolved)
+            if value is not SKIP_PROP:
+                resolved[key] = value
+        return resolved
+
+    def _resolve_prop(self, prop: Any, path: str, parent_resolved: bool = False) -> Any:
+        if (
+            not parent_resolved
+            and not isinstance(prop, AlwaysProp)
+            and self._excluded_by_partial_request(path)
+        ):
+            return SKIP_PROP
+
+        if isinstance(prop, dict):
+            if not prop:
+                return {}
+            resolved = self._resolve_mapping(prop, path, parent_resolved)
+            return resolved if resolved else SKIP_PROP
+        if isinstance(prop, list):
+            return self._resolve_list(prop, path, parent_resolved)
+
+        self._collect_metadata(prop, path)
+        if self._should_skip_loaded_once_prop(prop, path):
+            return SKIP_PROP
+        if not self._is_partial() and (
+            isinstance(prop, IgnoreOnFirstLoadProp)
+            or isinstance(prop, ScrollProp)
+            and prop.defer
+        ):
+            return SKIP_PROP
+
+        try:
+            value = prop() if callable(prop) else prop
+        except Exception:
+            if isinstance(prop, DeferredProp) and prop.rescue:
+                self.metadata["rescuedProps"].append(path)
+                return SKIP_PROP
+            raise
+
+        if isinstance(value, CallableProp):
+            return self._resolve_prop(value, path, parent_resolved=True)
+        if isinstance(value, dict):
+            if not value:
+                return {}
+            resolved = self._resolve_mapping(value, path, parent_resolved=True)
+            return resolved if resolved else SKIP_PROP
+        if isinstance(value, list):
+            return self._resolve_list(value, path, parent_resolved=True)
+        return value
+
+    def _resolve_list(
+        self, values: list[Any], path: str, parent_resolved: bool
+    ) -> list[Any]:
+        resolved: list[Any] = []
+        for index, value in enumerate(values):
+            item = self._resolve_list_item(value, path, index, parent_resolved)
+            if item is not SKIP_PROP:
+                resolved.append(item)
+        return resolved
+
+    def _resolve_list_item(
+        self, value: Any, path: str, index: int, parent_resolved: bool
+    ) -> Any:
+        item_path = f"{path}.{index}"
+        if isinstance(value, dict):
+            return self._resolve_mapping(value, item_path, parent_resolved)
+        if isinstance(value, CallableProp):
+            return self._resolve_prop(value, item_path, parent_resolved)
+        return value() if callable(value) else value
+
+    def _is_partial(self) -> bool:
+        return self.request.is_a_partial_render(self.component)
+
+    def _excluded_by_partial_request(self, path: str) -> bool:
+        if not self._is_partial():
+            return False
+        only = self.request.partial_keys()
+        if only is not None and not any(self._paths_overlap(path, key) for key in only):
+            return True
+        except_keys = self.request.partial_except_keys() or []
+        return any(path == key or path.startswith(f"{key}.") for key in except_keys)
+
+    @staticmethod
+    def _paths_overlap(left: str, right: str) -> bool:
+        return (
+            left == right
+            or left.startswith(f"{right}.")
+            or right.startswith(f"{left}.")
+        )
+
+    def _should_skip_loaded_once_prop(self, prop: Any, path: str) -> bool:
+        return (
+            self.request.is_inertia()
+            and not self._is_partial()
+            and isinstance(prop, CallableProp)
+            and prop.should_resolve_once()
+            and not prop.should_be_fresh()
+            and prop.once_key(path) in self.request.except_once_prop_keys()
+        )
+
+    def _collect_metadata(self, prop: Any, path: str) -> None:
+        if not isinstance(prop, CallableProp):
+            return
+        if (
+            isinstance(prop, DeferredProp)
+            or isinstance(prop, ScrollProp)
+            and prop.defer
+        ) and not self._is_partial():
+            self.metadata["deferredProps"].setdefault(prop.group, []).append(path)
+        if (
+            isinstance(prop, MergeableProp)
+            and prop.should_merge()
+            and not (
+                isinstance(prop, ScrollProp) and prop.defer and not self._is_partial()
+            )
+        ):
+            self._collect_merge_metadata(prop, path)
+        if prop.should_resolve_once():
+            self.metadata["onceProps"][prop.once_key(path)] = {
+                "prop": path,
+                "expiresAt": prop.once_expires_at(),
+            }
+
+    def _collect_merge_metadata(self, prop: MergeableProp, path: str) -> None:
+        reset = path in self.request.reset_keys()
+        if isinstance(prop, ScrollProp):
+            self.metadata["scrollProps"][path] = {**prop.metadata, "reset": reset}
+        if reset:
+            return
+        if prop.should_deep_merge():
+            self.metadata["deepMergeProps"].append(path)
+        else:
+            prepend_paths = prop.merge_paths(path, prepend=True)
+            append_paths = prop.merge_paths(path)
+            if prepend_paths:
+                self.metadata["prependProps"].extend(prepend_paths)
+            elif (
+                self._is_partial()
+                and self.request.infinite_scroll_merge_intent() == "prepend"
+            ):
+                self.metadata["prependProps"].extend(append_paths)
+            else:
+                self.metadata["mergeProps"].extend(append_paths)
+        self.metadata["matchPropsOn"].extend(
+            f"{path}.{match}" for match in prop.match_on()
+        )
+
+
 class BaseInertiaResponseMixin:
     request: InertiaRequest
     component: str
@@ -109,9 +307,10 @@ class BaseInertiaResponseMixin:
                 f"Expected bool for preserve_fragment, got {type(should_preserve_fragment).__name__}"
             )
 
+        resolved_props, metadata = self.resolve_props()
         _page: dict[str, Any] = {
             "component": self.component,
-            "props": self.build_props(),
+            "props": resolved_props,
             "url": self.request.get_full_path(),
             "version": settings.INERTIA_VERSION,
             "encryptHistory": self.request.should_encrypt_history(),
@@ -121,120 +320,28 @@ class BaseInertiaResponseMixin:
         if should_preserve_fragment:
             _page["preserveFragment"] = True
 
-        _deferred_props = self.build_deferred_props()
-        if _deferred_props:
-            _page["deferredProps"] = _deferred_props
-
-        _merge_props = self.build_merge_props()
-        if _merge_props:
-            _page["mergeProps"] = _merge_props
-
-        _prepend_props = self.build_prepend_props()
-        if _prepend_props:
-            _page["prependProps"] = _prepend_props
-
-        _once_props = self.build_once_props()
-        if _once_props:
-            _page["onceProps"] = _once_props
+        if self.request.shared_keys:
+            _page["sharedProps"] = self.request.shared_keys
+        flash = self.build_flash()
+        if flash:
+            _page["flash"] = flash
+        _page.update(metadata)
 
         return _page
 
-    def build_props(self) -> Any:
-        _props = {
-            **(self.request.inertia),
-            **self.props,
-        }
+    def resolve_props(self) -> tuple[dict[str, Any], dict[str, Any]]:
+        return PropsResolver(
+            self.request,
+            self.component,
+            {**self.request.inertia, **self.props},
+        ).resolve()
 
-        _except_once_keys = self.request.except_once_prop_keys()
-
-        for key in list(_props.keys()):
-            if self.request.is_a_partial_render(self.component):
-                if key not in self.request.partial_keys():
-                    del _props[key]
-            else:
-                prop = _props[key]
-                if isinstance(prop, IgnoreOnFirstLoadProp):
-                    del _props[key]
-                elif (
-                    isinstance(prop, OnceProp)
-                    and key in _except_once_keys
-                    and not prop.should_be_fresh()
-                ):
-                    # The client already holds this once prop value; skip resolving it
-                    del _props[key]
-
-        return deep_transform_callables(_props)
-
-    def build_deferred_props(self) -> dict[str, Any] | None:
-        if self.request.is_a_partial_render(self.component):
-            return None
-
-        _deferred_props: dict[str, Any] = {}
-        for key, prop in self.props.items():
-            if isinstance(prop, DeferredProp):
-                _deferred_props.setdefault(prop.group, []).append(key)
-
-        return _deferred_props
-
-    def build_merge_props(self) -> list[str]:
-        return [
-            key
-            for key, prop in self.props.items()
-            if (
-                isinstance(prop, MergeableProp)
-                and prop.should_merge()
-                and key not in self.request.reset_keys()
-            )
+    def build_flash(self) -> dict[str, Any]:
+        messages = [
+            {"level": message.level_tag, "message": str(message)}
+            for message in get_messages(self.request)
         ]
-
-    def build_prepend_props(self) -> list[str]:
-        """
-        Return merge-able prop keys that should be prepended on the client for
-        the current partial reload.
-
-        A non-empty list is only returned when:
-        - The request carries X-Inertia-Infinite-Scroll-Merge-Intent: prepend, and
-        - The request is a partial reload for the same component.
-
-        The returned keys are the intersection of merge-able props and the props
-        explicitly requested in X-Inertia-Partial-Data.
-        """
-        if self.request.infinite_scroll_merge_intent() != "prepend":
-            return []
-        if not self.request.is_a_partial_render(self.component):
-            return []
-        return [
-            key
-            for key, prop in self.props.items()
-            if (
-                isinstance(prop, MergeableProp)
-                and prop.should_merge()
-                and key in self.request.partial_keys()
-                and key not in self.request.reset_keys()
-            )
-        ]
-
-    def build_once_props(self) -> dict[str, Any]:
-        """
-        Return once prop metadata for inclusion in the page object.
-
-        The onceProps map is only included in full (non-partial) responses.  It
-        tells the client which props are once props so it can cache them and
-        send their keys in X-Inertia-Except-Once-Props on future requests.
-
-        Each entry maps the prop key to an object containing:
-        - prop: the prop name (may differ from the key when custom keys are used)
-        - expiresAt: optional expiry timestamp in milliseconds, or null
-        """
-        if self.request.is_a_partial_render(self.component):
-            return {}
-
-        merged = {**self.request.inertia, **self.props}
-        return {
-            key: {"prop": key, "expiresAt": None}
-            for key, prop in merged.items()
-            if isinstance(prop, OnceProp)
-        }
+        return {"messages": messages} if messages else {}
 
     def build_first_load(self, data: Any) -> str:
         context, template = self.build_first_load_context_and_template(data)
@@ -305,11 +412,15 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
             self.page_data(),
             cls=self.json_encoder or settings.INERTIA_JSON_ENCODER,
         )
+        # Page data is embedded in a JSON script tag for Inertia v3 clients.
+        # Escape the few characters that could terminate or alter that script.
+        data = (
+            data.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e")
+        )
 
         if self.request.is_inertia():
             _headers = {
                 **_headers,
-                "Vary": "X-Inertia",
                 "X-Inertia": "true",
                 "Content-Type": "application/json",
             }
@@ -329,6 +440,7 @@ class InertiaResponse(BaseInertiaResponseMixin, HttpResponse):
                 headers=_headers,
                 **kwargs,
             )
+        patch_vary_headers(self, ("X-Inertia",))
 
 
 def render(

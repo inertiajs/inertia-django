@@ -1,8 +1,11 @@
+from django.contrib import messages
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
 
 from inertia import (
+    always,
+    deep_merge,
     defer,
     inertia,
     lazy,
@@ -12,6 +15,7 @@ from inertia import (
     optional,
     preserve_fragment,
     render,
+    scroll,
     share,
 )
 from inertia.http import (
@@ -40,6 +44,17 @@ def test(request):
 
 @inertia("TestComponent")
 def empty_test(request):
+    return {}
+
+
+@inertia("TestComponent")
+def messages_test(request):
+    messages.success(request, "Profile saved!")
+    return {}
+
+
+@inertia("TestComponent")
+def no_messages_test(request):
     return {}
 
 
@@ -258,4 +273,62 @@ def infinite_scroll_test(request):
     return {
         "name": "Brandon",
         "items": merge(lambda: ["item1", "item2"]),
+    }
+
+
+@inertia("TestComponent")
+def v3_nested_props_test(request):
+    return {
+        "config": {
+            "locale": once(lambda: "en-US", key="locale"),
+            "timezone": "UTC",
+        },
+        "user": {"name": "Brandon", "token": "secret-token"},
+    }
+
+
+@inertia("TestComponent")
+def v3_merge_props_test(request):
+    return {
+        "feed": merge(
+            lambda: {"items": [{"id": 2, "name": "Brandon"}]},
+            append="items",
+            match_on="items.id",
+        ),
+        "chat": deep_merge(
+            lambda: {"messages": [{"id": 2, "body": "Hockey"}]},
+            match_on="messages.id",
+        ),
+    }
+
+
+@inertia("TestComponent")
+def v3_scroll_test(request):
+    return {
+        "players": scroll(
+            lambda: ["Brian", "Brandon"],
+            {
+                "pageName": "page",
+                "previousPage": None,
+                "nextPage": 2,
+                "currentPage": 1,
+            },
+        )
+    }
+
+
+@inertia("TestComponent")
+def v3_deferred_scroll_test(request):
+    return {
+        "score": always(lambda: "Brandon"),
+        "players": scroll(
+            lambda: ["Brian", "Brandon"],
+            {
+                "pageName": "page",
+                "previousPage": None,
+                "nextPage": 2,
+                "currentPage": 1,
+            },
+            defer=True,
+        ),
     }

@@ -50,19 +50,21 @@ You can also check out the official Inertia docs at https://inertiajs.com/.
 
 Django's CSRF tokens are tightly coupled with rendering templates, so Inertia Django automatically handles adding the CSRF cookie to every response — including non-visit XHR requests made via the `useHttp` hook introduced in Inertia v3.
 
-No additional configuration is required. If you are upgrading from Inertia v2 and previously configured Axios to handle CSRF, those lines can be removed:
+The Inertia v3 HTTP client defaults to Laravel's `XSRF-TOKEN` cookie and `X-XSRF-TOKEN` header, while Django defaults to `csrftoken` and `X-CSRFToken`. Configure the client with Django's names (or use your project's custom CSRF names):
 
 ```javascript
-// No longer needed with Inertia v3
-// axios.defaults.xsrfHeaderName = "X-CSRFToken";
-// axios.defaults.xsrfCookieName = "csrftoken";
+createInertiaApp({
+  // ...
+  http: {
+    xsrfCookieName: 'csrftoken',
+    xsrfHeaderName: 'X-CSRFToken',
+  },
+})
 ```
 
-```python
-# No longer needed with Inertia v3
-# CSRF_HEADER_NAME = 'HTTP_X_XSRF_TOKEN'
-# CSRF_COOKIE_NAME = 'XSRF-TOKEN'
-```
+## Upgrading to Inertia v3
+
+See the [Inertia v3 upgrade guide](docs/guide/upgrading-to-v3.md) for the required client, template, partial reload, flash, redirect, and cache changes.
 
 ## Usage
 
@@ -186,6 +188,17 @@ def example(request):
   }
 ```
 
+Use `always()` for data that must be included even when the client requests a different subset of props:
+
+```python
+from inertia import always
+
+return {
+  'currentUser': always(lambda: request.user.username),
+  'reports': optional(load_reports),
+}
+```
+
 ### Deferred Props
 
 As of version 2.0, Inertia supports the ability to defer the fetching of props until after the page has been initially rendered. Essentially this is similar to the concept of `Optional props` however Inertia provides convenient frontend components to automatically fetch the deferred props after the page has initially loaded, instead of requiring the user to initiate a reload. For more info, see [Deferred props](https://inertiajs.com/deferred-props) in the Inertia documentation.
@@ -250,6 +263,33 @@ def example(request):
   }
 ```
 
+For Inertia v3, `merge()` can target nested arrays and match incoming records by a stable key. `deep_merge()` merges nested objects and arrays recursively:
+
+```python
+from inertia import deep_merge, merge
+
+return {
+  'feed': merge(load_feed, append='items', match_on='items.id'),
+  'chat': deep_merge(load_chat, match_on='messages.id'),
+}
+```
+
+### Scroll Props
+
+`scroll()` adds the pagination metadata used by Inertia v3's infinite-scroll components. Pass `defer=True` to load its first page after the initial render.
+
+```python
+from inertia import scroll
+
+return {
+  'players': scroll(
+    load_players,
+    {'pageName': 'page', 'previousPage': None, 'nextPage': 2, 'currentPage': 1},
+    defer=True,
+  ),
+}
+```
+
 ### Once Props
 
 Some data rarely changes, is expensive to compute, or is simply large. Rather than sending it on every response, you can use `once` props. Once props are resolved on the first visit and remembered by the client. On subsequent visits the server skips re-resolving them, saving both CPU and bandwidth.
@@ -279,6 +319,17 @@ Once props also work in shared data:
 
 ```python
 share(request, countries=once(lambda: list(Country.objects.values('code', 'name'))))
+```
+
+### Flash Data
+
+Django messages are automatically exposed through the page object's top-level `flash.messages` field.
+
+```python
+from django.contrib import messages
+
+messages.success(request, 'Brandon scored!')
+return redirect('players:index')
 ```
 
 ### Preserve Fragment

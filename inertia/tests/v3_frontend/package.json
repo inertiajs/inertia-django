@@ -1,0 +1,21 @@
+{
+  "name": "inertia-django-v3-compatibility",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "test": "playwright test",
+    "test:compat": "concurrently -k -s first \"vite --host 127.0.0.1\" \"DJANGO_SETTINGS_MODULE=inertia.tests.settings INERTIA_LAYOUT=layout_v3.html poetry run python -m django runserver 127.0.0.1:8000 --noreload\" \"wait-on tcp:127.0.0.1:5173 tcp:127.0.0.1:8000 && playwright test\""
+  },
+  "devDependencies": {
+    "@playwright/test": "1.50.1",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "concurrently": "^9.2.1",
+    "vite": "^5.4.19",
+    "vue": "^3.5.28",
+    "wait-on": "7.2.0"
+  },
+  "dependencies": {
+    "@inertiajs/vue3": "^3.6.1"
+  }
+}

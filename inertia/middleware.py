@@ -3,6 +3,7 @@ from typing import Callable
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
+from django.utils.cache import patch_vary_headers
 
 from .http import location
 from .settings import settings
@@ -29,6 +30,7 @@ class InertiaMiddleware:
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
         response = self.get_response(request)
+        patch_vary_headers(response, ("X-Inertia",))
 
         # Inertia requests bypass Django's normal template rendering and
         # therefore never hit the standard CSRF middleware path that attaches
@@ -42,7 +44,10 @@ class InertiaMiddleware:
         if self.is_non_post_redirect(request, response):
             response.status_code = 303
 
-        if self.is_stale(request):
+        if self.redirect_has_fragment(response) and not self.is_prefetch(request):
+            return self.inertia_redirect(response)
+
+        if request.method == "GET" and self.is_stale(request):
             return self.force_refresh(request)
 
         return response
@@ -62,6 +67,21 @@ class InertiaMiddleware:
     def is_redirect_request(self, response: HttpResponse) -> bool:
         return response.status_code in [301, 302]
 
+    def redirect_has_fragment(self, response: HttpResponse) -> bool:
+        return self.is_redirect_request(response) and "#" in response.headers.get(
+            "Location", ""
+        )
+
+    def is_prefetch(self, request: HttpRequest) -> bool:
+        return request.headers.get("Purpose") == "prefetch"
+
+    def inertia_redirect(self, response: HttpResponse) -> HttpResponse:
+        return HttpResponse(
+            "",
+            status=409,
+            headers={"X-Inertia-Redirect": response.headers["Location"]},
+        )
+
     def is_stale(self, request: HttpRequest) -> bool:
         return (
             request.headers.get("X-Inertia-Version", settings.INERTIA_VERSION)
@@ -73,4 +93,6 @@ class InertiaMiddleware:
         storage = messages.get_messages(request)
         if not isinstance(storage, list):
             storage.used = False
-        return location(request.build_absolute_uri())
+        response = location(request.build_absolute_uri())
+        patch_vary_headers(response, ("X-Inertia",))
+        return response

@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     path("test/", views.test),
     path("empty/", views.empty_test),
+    path("messages/", views.messages_test),
+    path("no-messages/", views.no_messages_test),
     path("redirect/", views.redirect_test),
     path("props/", views.props_test),
     path("template_data/", views.template_data_test),
@@ -35,4 +37,8 @@ urlpatterns = [
     path("preserve-errors/", views.preserve_errors_test),  # type: ignore[arg-type]
     # Infinite scroll merge intent (Inertia v3)
     path("infinite-scroll/", views.infinite_scroll_test),
+    path("v3/nested/", views.v3_nested_props_test),
+    path("v3/merge/", views.v3_merge_props_test),
+    path("v3/scroll/", views.v3_scroll_test),
+    path("v3/deferred-scroll/", views.v3_deferred_scroll_test),
 ]
