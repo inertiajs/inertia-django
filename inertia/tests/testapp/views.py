@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import decorator_from_middleware
@@ -151,4 +152,15 @@ def clear_history_redirect_test(request):
 @inertia("TestComponent")
 def clear_history_type_error_test(request):
     request.session[INERTIA_SESSION_CLEAR_HISTORY] = "foo"
+    return {}
+
+
+@inertia("TestComponent")
+def messages_test(request):
+    messages.success(request, "Profile saved!")
+    return {}
+
+
+@inertia("TestComponent")
+def no_messages_test(request):
     return {}

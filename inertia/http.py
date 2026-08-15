@@ -4,6 +4,7 @@ from http import HTTPStatus
 from json import dumps as json_encode
 from typing import Any, Callable
 
+from django.contrib.messages import get_messages
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
@@ -88,6 +89,10 @@ class BaseInertiaResponseMixin:
             "clearHistory": clear_history,
         }
 
+        _flash = self.build_flash()
+        if _flash:
+            _page["flash"] = _flash
+
         _deferred_props = self.build_deferred_props()
         if _deferred_props:
             _page["deferredProps"] = _deferred_props
@@ -113,6 +118,14 @@ class BaseInertiaResponseMixin:
                     del _props[key]
 
         return deep_transform_callables(_props)
+
+    def build_flash(self) -> dict[str, Any]:
+        messages = [
+            {"level": message.level_tag, "message": str(message)}
+            for message in get_messages(self.request)
+        ]
+
+        return {"messages": messages} if messages else {}
 
     def build_deferred_props(self) -> dict[str, Any] | None:
         if self.request.is_a_partial_render(self.component):

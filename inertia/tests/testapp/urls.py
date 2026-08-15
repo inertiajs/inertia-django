@@ -23,4 +23,6 @@ urlpatterns = [
     path("clear-history/", views.clear_history_test),
     path("clear-history-redirect/", views.clear_history_redirect_test),
     path("clear-history-type-error/", views.clear_history_type_error_test),
+    path("messages/", views.messages_test),
+    path("no-messages/", views.no_messages_test),
 ]
