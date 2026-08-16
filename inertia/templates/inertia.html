@@ -1,5 +1,6 @@
 {% extends inertia_layout %}
 
 {% block inertia %}
-  <div id="app" data-page="{{page|escape}}"></div>
+  <script data-page="app" type="application/json">{{page|safe}}</script>
+  <div id="app"></div>
 {% endblock inertia %}

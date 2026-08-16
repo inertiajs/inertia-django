@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     path("test/", views.test),
     path("empty/", views.empty_test),
+    path("messages/", views.messages_test),
+    path("no-messages/", views.no_messages_test),
     path("redirect/", views.redirect_test),
     path("props/", views.props_test),
     path("template_data/", views.template_data_test),
@@ -23,6 +25,21 @@ urlpatterns = [
     path("clear-history/", views.clear_history_test),
     path("clear-history-redirect/", views.clear_history_redirect_test),
     path("clear-history-type-error/", views.clear_history_type_error_test),
-    path("messages/", views.messages_test),
-    path("no-messages/", views.no_messages_test),
+    # Once props (Inertia v3)
+    path("once/", views.once_test),
+    path("once-shared/", views.once_shared_test),
+    path("once-fresh/", views.once_fresh_test),
+    # preserveFragment (Inertia v3)
+    path("preserve-fragment/", views.preserve_fragment_page_test),
+    path("preserve-fragment-redirect/", views.preserve_fragment_redirect_test),
+    path("preserve-fragment-type-error/", views.preserve_fragment_type_error_test),
+    # preserveErrors / shared errors (Inertia v3)
+    path("preserve-errors/", views.preserve_errors_test),  # type: ignore[arg-type]
+    # Infinite scroll merge intent (Inertia v3)
+    path("infinite-scroll/", views.infinite_scroll_test),
+    path("v3/nested/", views.v3_nested_props_test),
+    path("v3/merge/", views.v3_merge_props_test),
+    path("v3/scroll/", views.v3_scroll_test),
+    path("v3/deferred-scroll/", views.v3_deferred_scroll_test),
+    path("v3/deferred-once/", views.v3_deferred_once_test),
 ]

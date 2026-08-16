@@ -176,7 +176,7 @@ Inside the `js` directory, create a `main.js` file.
 Next, update your main JavaScript file (`main.js`) to boot your Inertia app.
 To accomplish this, we'll initialize the client-side framework with the base Inertia component.
 
-We will also configure CSRF to work properly with Django.
+Configure the Inertia v3 HTTP client to use Django's default CSRF cookie and header names.
 
 ::: code-group
 
@@ -184,13 +184,13 @@ We will also configure CSRF to work properly with Django.
 // frontend/js/main.js
 import { createApp, h } from "vue";
 import { createInertiaApp } from "@inertiajs/vue3";
-import axios from "axios";
 
 document.addEventListener("DOMContentLoaded", () => {
-	axios.defaults.xsrfCookieName = "csrftoken";
-	axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
-
     createInertiaApp({
+        http: {
+            xsrfCookieName: "csrftoken",
+            xsrfHeaderName: "X-CSRFToken",
+        },
         resolve: (name) => {
             const pages = import.meta.glob("../pages/**/*.vue", { eager: true });
             return pages[`../pages/${name}.vue`];
@@ -210,13 +210,12 @@ import { createInertiaApp } from "@inertiajs/react";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 
-import axios from "axios";
-
 document.addEventListener("DOMContentLoaded", () => {
-	axios.defaults.xsrfCookieName = "csrftoken";
-	axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
-
     createInertiaApp({
+        http: {
+            xsrfCookieName: "csrftoken",
+            xsrfHeaderName: "X-CSRFToken",
+        },
         resolve: (name) => {
             const pages = import.meta.glob("../pages/**/*.jsx", { eager: true });
             return pages[`../pages/${name}.jsx`];
@@ -232,13 +231,13 @@ document.addEventListener("DOMContentLoaded", () => {
 ```js [Svelte 4]
 // frontend/js/main.js
 import { createInertiaApp } from "@inertiajs/svelte";
-import axios from "axios";
 
 document.addEventListener("DOMContentLoaded", () => {
-	axios.defaults.xsrfCookieName = "csrftoken";
-	axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
-
     createInertiaApp({
+        http: {
+            xsrfCookieName: "csrftoken",
+            xsrfHeaderName: "X-CSRFToken",
+        },
         resolve: (name) => {
             const pages = import.meta.glob("../pages/**/*.svelte", { eager: true });
             return pages[`../pages/${name}.svelte`];
@@ -256,6 +255,10 @@ import { createInertiaApp } from "@inertiajs/svelte";
 import { mount } from "svelte";
 
 createInertiaApp({
+    http: {
+        xsrfCookieName: "csrftoken",
+        xsrfHeaderName: "X-CSRFToken",
+    },
     resolve: (name) => {
         const pages = import.meta.glob("./Pages/**/*.svelte", { eager: true });
         return pages[`./Pages/${name}.svelte`];

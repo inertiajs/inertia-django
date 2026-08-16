@@ -18,6 +18,9 @@ class InertiaShare:
     def all(self) -> dict[str, Any]:
         return self.props
 
+    def keys(self) -> list[str]:
+        return list(self.props)
+
 
 def share(request: HttpRequest, **kwargs: Any) -> None:
     if not hasattr(request, "inertia"):

@@ -48,25 +48,23 @@ You can also check out the official Inertia docs at https://inertiajs.com/.
 
 ### CSRF
 
-Django's CSRF tokens are tightly coupled with rendering templates so Inertia Django automatically handles adding the CSRF cookie for you to each Inertia response. Because the default names Django users for the CSRF headers don't match Axios (the Javascript request library Inertia uses), we'll need to either modify Axios's defaults OR Django's settings.
+Django's CSRF tokens are tightly coupled with rendering templates, so Inertia Django automatically handles adding the CSRF cookie to every response — including non-visit XHR requests made via the `useHttp` hook introduced in Inertia v3.
 
-**You only need to choose one of the following options, just pick whichever makes the most sense to you!**
-
-In your `entry.js` file
+The Inertia v3 HTTP client defaults to Laravel's `XSRF-TOKEN` cookie and `X-XSRF-TOKEN` header, while Django defaults to `csrftoken` and `X-CSRFToken`. Configure the client with Django's names (or use your project's custom CSRF names):
 
 ```javascript
-axios.defaults.xsrfHeaderName = "X-CSRFToken";
-axios.defaults.xsrfCookieName = "csrftoken";
+createInertiaApp({
+  // ...
+  http: {
+    xsrfCookieName: 'csrftoken',
+    xsrfHeaderName: 'X-CSRFToken',
+  },
+})
 ```
 
-OR
+## Upgrading to Inertia v3
 
-In your Django `settings.py` file
-
-```python
-CSRF_HEADER_NAME = 'HTTP_X_XSRF_TOKEN'
-CSRF_COOKIE_NAME = 'XSRF-TOKEN'
-```
+See the [Inertia v3 upgrade guide](docs/guide/upgrading-to-v3.md) for the required client, template, partial reload, flash, redirect, and cache changes.
 
 ## Usage
 
@@ -133,6 +131,7 @@ def inertia_share(get_response):
     return get_response(request)
   return middleware
 ```
+
 ### Prop Serialization
 
 Unlike Rails and Laravel, Django does not handle converting objects to JSON by default so Inertia Django offers two different ways to handle prop serialization.
@@ -187,6 +186,17 @@ def example(request):
     'name': lambda: 'Brandon', # this will be rendered on the first load as usual
     'data': optional(lambda: some_long_calculation()), # this will only be run when specifically requested by partial props and WILL NOT be included on the initial load
   }
+```
+
+Use `always()` for data that must be included even when the client requests a different subset of props:
+
+```python
+from inertia import always
+
+return {
+  'currentUser': always(lambda: request.user.username),
+  'reports': optional(load_reports),
+}
 ```
 
 ### Deferred Props
@@ -252,6 +262,94 @@ def example(request):
     'data': defer(lambda: Paginator(objects, 3), merge=True),
   }
 ```
+
+For Inertia v3, `merge()` can target nested arrays and match incoming records by a stable key. `deep_merge()` merges nested objects and arrays recursively:
+
+```python
+from inertia import deep_merge, merge
+
+return {
+  'feed': merge(load_feed, append='items', match_on='items.id'),
+  'chat': deep_merge(load_chat, match_on='messages.id'),
+}
+```
+
+### Scroll Props
+
+`scroll()` adds the pagination metadata used by Inertia v3's infinite-scroll components. Pass `defer=True` to load its first page after the initial render.
+
+```python
+from inertia import scroll
+
+return {
+  'players': scroll(
+    load_players,
+    {'pageName': 'page', 'previousPage': None, 'nextPage': 2, 'currentPage': 1},
+    defer=True,
+  ),
+}
+```
+
+### Once Props
+
+Some data rarely changes, is expensive to compute, or is simply large. Rather than sending it on every response, you can use `once` props. Once props are resolved on the first visit and remembered by the client. On subsequent visits the server skips re-resolving them, saving both CPU and bandwidth.
+
+```python
+from inertia import once, inertia
+
+@inertia('ExampleComponent')
+def example(request):
+  return {
+    'name': lambda: 'Brandon',
+    'plans': once(lambda: Plan.objects.all()), # resolved once, then cached client-side
+  }
+```
+
+Pass `fresh=True` to force re-resolution on every request, regardless of whether the client already holds the value:
+
+```python
+@inertia('Billing/Plans')
+def plans(request):
+  return {
+    'plans': once(lambda: Plan.objects.all(), fresh=True),
+  }
+```
+
+Once props also work in shared data:
+
+```python
+share(request, countries=once(lambda: list(Country.objects.values('code', 'name'))))
+```
+
+### Flash Data
+
+Django messages are automatically exposed through the page object's top-level `flash.messages` field.
+
+```python
+from django.contrib import messages
+
+messages.success(request, 'Brandon scored!')
+return redirect('players:index')
+```
+
+### Preserve Fragment
+
+When a user visits a URL with a fragment (e.g. `/article/old-slug#section`) and the server redirects to a different URL, the fragment is normally lost. Call `preserve_fragment()` before returning the redirect to carry the fragment to the new URL:
+
+```python
+from django.shortcuts import redirect
+
+from inertia import preserve_fragment
+
+def rename_article(request, slug):
+    article = Article.objects.get(slug=slug)
+    article.slug = request.POST['new_slug']
+    article.save()
+    preserve_fragment(request)
+    return redirect('articles:show', slug=article.slug)
+```
+
+The client will navigate to `/article/new-slug#section` instead of `/article/new-slug`.
 
 ### Json Encoding
 
