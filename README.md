@@ -399,6 +399,10 @@ class LogoutView(auth_views.LogoutView):
 
 ### SSR
 
+The SSR is handled by a separate Node server. Your backend acts like a proxy, receiving requests from the frontend, calling the Node server (SSR server), and returning the rendered HTML to the frontend.
+
+Look at the [examples section](#examples) to see working examples of SSR with Django and React or Svelte.
+
 #### Backend
 
 * Ensure `requests` is installed, so inertia-django can do SSR requests.
@@ -408,7 +412,7 @@ class LogoutView(auth_views.LogoutView):
 
 #### Frontend
 
-Coming Soon!
+Follow the [current Inertiajs docs for setting up SSR](https://inertiajs.com/docs/v2/advanced/server-side-rendering).
 
 ## Settings
 
@@ -464,7 +468,7 @@ for you to simulate an inertia response. You can access and use it just like the
 ## Examples
 
 - [Django Svelte Template](https://github.com/pmdevita/Django-Svelte-Template) - A Django template and example project demonstrating Inertia with Svelte and SSR.
-- [Django React](https://github.com/willianantunes/inertia-django-playground): A Django + React project including CRUD operations, form handling, authentication, deployment using Docker, and more.
+- [Django React](https://github.com/willianantunes/inertia-django-playground): A Django + React project including CRUD operations, form handling, authentication, deployment using Docker, SSR, and more.
 
 ## Thank you
 
