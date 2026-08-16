@@ -15,11 +15,12 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Framework :: Django :: 4",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.1",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "django>=4",
+    "django>=5.2",
 ]
 
 [project.urls]

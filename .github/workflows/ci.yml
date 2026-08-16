@@ -13,15 +13,20 @@ on:
 jobs:
   unit-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - python-version: '3.10'
+            django: '>=5.2,<5.3'
+          - python-version: '3.12'
+            django: '>=6.1,<7'
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5.4.0
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python-version }}
       - run: uv sync --locked --extra ssr
-      - run: uv run pytest -v -ra --cov --cov-report=term-missing
-        env:
-          COVERAGE_CORE: sysmon
+      - run: uv run --locked --with "django${{ matrix.django }}" pytest -v -ra --cov --cov-report=term-missing
   v3-compatibility:
     runs-on: ubuntu-latest
     steps:
