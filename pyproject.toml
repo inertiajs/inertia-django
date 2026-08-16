@@ -1,6 +1,6 @@
 [build-system]
-requires = ["poetry-core>=2.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.12.5,<0.13"]
+build-backend = "uv_build"
 
 [project]
 name = "inertia-django"
@@ -10,8 +10,6 @@ authors = [{name="Brandon Shar", email="brandon@bellawatt.com"}]
 license = "MIT"
 requires-python = ">=3.10"
 readme = "README.md"
-repository = "https://github.com/inertiajs/inertia-django"
-homepage = "https://github.com/inertiajs/inertia-django"
 keywords = ["inertia", "inertiajs", "django"]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -24,23 +22,28 @@ dependencies = [
     "django>=4",
 ]
 
+[project.urls]
+Homepage = "https://github.com/inertiajs/inertia-django"
+Repository = "https://github.com/inertiajs/inertia-django"
+
 [project.optional-dependencies]
 # Requests is requires for server-side rendering.
 ssr = ["requests>=2"]
 
-[tool.poetry]
-packages = [
-  { include = "inertia" },
+[dependency-groups]
+dev = [
+    "django-stubs[compatible-mypy]>=5.2.2,<6.0.0",
+    "mypy>=1.17.0,<2.0.0",
+    "pytest>=8.3.5,<9.0.0",
+    "pytest-cov>=6.0.0,<7.0.0",
+    "pytest-django>=4.10.0,<5.0.0",
+    "ruff>=0.11.2,<0.12.0",
+    "types-requests>=2.32.4.20250611,<3.0.0",
 ]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.5"
-pytest-cov = "^6.0.0"
-pytest-django = "^4.10.0"
-ruff = "^0.11.2"
-mypy = "^1.17.0"
-django-stubs = {extras = ["compatible-mypy"], version = "^5.2.2"}
-types-requests = "^2.32.4.20250611"
+[tool.uv.build-backend]
+module-name = "inertia"
+module-root = ""
 
 [tool.ruff.lint]
 select = [
@@ -67,4 +70,3 @@ exclude = [
 
 [tool.django-stubs]
 django_settings_module = "inertia.tests.settings"
-

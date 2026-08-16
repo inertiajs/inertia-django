@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "test": "playwright test",
-    "test:compat": "concurrently -k -s first \"vite --host 127.0.0.1\" \"DJANGO_SETTINGS_MODULE=inertia.tests.settings INERTIA_LAYOUT=layout_v3.html poetry run python -m django runserver 127.0.0.1:8000 --noreload\" \"wait-on tcp:127.0.0.1:5173 tcp:127.0.0.1:8000 && playwright test\""
+    "test:compat": "concurrently -k -s first \"vite --host 127.0.0.1\" \"DJANGO_SETTINGS_MODULE=inertia.tests.settings INERTIA_LAYOUT=layout_v3.html uv run --project ../../.. python -m django runserver 127.0.0.1:8000 --noreload\" \"wait-on tcp:127.0.0.1:5173 tcp:127.0.0.1:8000 && playwright test\""
   },
   "devDependencies": {
     "@playwright/test": "1.50.1",

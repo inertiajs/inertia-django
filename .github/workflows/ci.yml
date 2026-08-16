@@ -18,8 +18,8 @@ jobs:
       - uses: astral-sh/setup-uv@v5.4.0
         with:
           python-version: '3.12'
-      - run: uvx poetry install --extras=ssr
-      - run: uvx poetry run pytest -v -ra --cov --cov-report=term-missing
+      - run: uv sync --locked --extra ssr
+      - run: uv run pytest -v -ra --cov --cov-report=term-missing
         env:
           COVERAGE_CORE: sysmon
   v3-compatibility:
@@ -34,13 +34,12 @@ jobs:
       - uses: astral-sh/setup-uv@v5.4.0
         with:
           python-version: '3.12'
-      - run: uv tool install poetry
-      - run: PATH="$HOME/.local/bin:$PATH" poetry install --extras=ssr
+      - run: uv sync --locked --extra ssr
       - run: npm ci
         working-directory: inertia/tests/v3_frontend
       - run: npx playwright install --with-deps chromium
         working-directory: inertia/tests/v3_frontend
-      - run: PATH="$HOME/.local/bin:$PATH" npm run test:compat
+      - run: npm run test:compat
         working-directory: inertia/tests/v3_frontend
   build:
     runs-on: ubuntu-latest
@@ -49,7 +48,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5.4.0
         with:
           python-version: '3.12'
-      - run: uv build .
+      - run: uv build --no-sources .
       - uses: actions/upload-artifact@v4
         with:
           name: dist
@@ -68,5 +67,5 @@ jobs:
       - uses: astral-sh/setup-uv@v5.4.0
         with:
           python-version: '3.12'
-      - run: uvx poetry install --extras=ssr
-      - run: uvx poetry run mypy .
+      - run: uv sync --locked --extra ssr
+      - run: uv run mypy .
