@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import logging
 from functools import wraps
 from http import HTTPStatus
 from json import dumps as json_encode
-from typing import Any, Callable
+from typing import TYPE_CHECKING
 
 from django.contrib.messages import get_messages
 from django.core.exceptions import ImproperlyConfigured
@@ -20,6 +22,25 @@ try:
 except ImportError:
     requests = None  # type: ignore[assignment]
 
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Any, Concatenate, NotRequired, ParamSpec, TypedDict, TypeVar
+
+    P = ParamSpec("P")
+    R = TypeVar("R", HttpResponse, "InertiaResponse", dict[str, Any])
+
+    class PageDataDict(TypedDict):
+        component: str
+        props: dict[str, Any]
+        url: str
+        version: str
+        encryptHistory: bool
+        clearHistory: bool
+        deferredProps: NotRequired[dict[str, Any] | None]
+        mergeProps: NotRequired[list[str]]
+
+
 logger = logging.getLogger(__name__)
 
 INERTIA_REQUEST_ENCRYPT_HISTORY = "_inertia_encrypt_history"
@@ -30,7 +51,7 @@ INERTIA_SSR_TEMPLATE = "inertia_ssr.html"
 
 
 class InertiaRequest(HttpRequest):
-    def __init__(self, request: HttpRequest):
+    def __init__(self, request: HttpRequest) -> None:
         super().__init__()
         self.__dict__.update(request.__dict__)
 
@@ -73,14 +94,14 @@ class BaseInertiaResponseMixin:
     props: dict[str, Any]
     template_data: dict[str, Any]
 
-    def page_data(self) -> dict[str, Any]:
+    def page_data(self) -> PageDataDict:
         clear_history = self.request.session.pop(INERTIA_SESSION_CLEAR_HISTORY, False)
         if not isinstance(clear_history, bool):
             raise TypeError(
                 f"Expected bool for clear_history, got {type(clear_history).__name__}"
             )
 
-        _page = {
+        _page: PageDataDict = {
             "component": self.component,
             "props": self.build_props(),
             "url": self.request.get_full_path(),
@@ -103,9 +124,9 @@ class BaseInertiaResponseMixin:
 
         return _page
 
-    def build_props(self) -> Any:
+    def build_props(self) -> dict[str, Any]:
         _props = {
-            **(self.request.inertia),
+            **self.request.inertia,
             **self.props,
         }
 
@@ -191,7 +212,7 @@ class BaseInertiaResponseMixin:
 
         return {
             "page": data,
-            **(self.template_data),
+            **self.template_data,
         }, INERTIA_TEMPLATE
 
 
@@ -274,15 +295,15 @@ def clear_history(request: HttpRequest) -> None:
 def inertia(
     component: str,
 ) -> Callable[
-    [Callable[..., HttpResponse | InertiaResponse | dict[str, Any]]],
-    Callable[..., HttpResponse],
+    [Callable[Concatenate[HttpRequest, P], R]],
+    Callable[Concatenate[HttpRequest, P], HttpResponse],
 ]:
     def decorator(
-        func: Callable[..., HttpResponse | InertiaResponse | dict[str, Any]],
-    ) -> Callable[..., HttpResponse]:
+        func: Callable[Concatenate[HttpRequest, P], R],
+    ) -> Callable[Concatenate[HttpRequest, P], HttpResponse]:
         @wraps(func)
         def process_inertia_response(
-            request: HttpRequest, *args: Any, **kwargs: Any
+            request: HttpRequest, /, *args: P.args, **kwargs: P.kwargs
         ) -> HttpResponse:
             props = func(request, *args, **kwargs)
 

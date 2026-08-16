@@ -1,6 +1,12 @@
-from typing import Any
+from __future__ import annotations
 
-from django.http import HttpRequest
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from django.http import HttpRequest
+
 
 __all__ = ["share"]
 

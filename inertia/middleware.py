@@ -1,11 +1,17 @@
-from typing import Callable
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
 
 from .http import location
 from .settings import settings
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from django.http import HttpRequest, HttpResponse
 
 
 class InertiaMiddleware:
