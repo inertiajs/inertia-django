@@ -4,9 +4,9 @@ build-backend = "uv_build"
 
 [project]
 name = "inertia-django"
-version = "1.2.0"
+version = "2.0.0"
 description = "Django adapter for the InertiaJS framework"
-authors = [{name="Brandon Shar", email="brandon@bellawatt.com"}]
+authors = [{name = "Brandon Shar"}]
 license = "MIT"
 requires-python = ">=3.10"
 readme = "README.md"

@@ -22,7 +22,7 @@ jobs:
             django: '>=6.1,<7'
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5.4.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --locked --extra ssr
@@ -36,7 +36,7 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: inertia/tests/v3_frontend/package-lock.json
-      - uses: astral-sh/setup-uv@v5.4.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           python-version: '3.12'
       - run: uv sync --locked --extra ssr
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5.4.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           python-version: '3.12'
       - run: uv build --no-sources .
@@ -62,14 +62,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/ruff-action@v3
+      - uses: astral-sh/ruff-action@v4.1.0
       - run: ruff check
       - run: ruff format --check
   mypy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5.4.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           python-version: '3.12'
       - run: uv sync --locked --extra ssr
