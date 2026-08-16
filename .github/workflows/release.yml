@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name }}
-      - uses: astral-sh/setup-uv@v5.4.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           python-version: '3.12'
       - name: Verify release tag matches package version
